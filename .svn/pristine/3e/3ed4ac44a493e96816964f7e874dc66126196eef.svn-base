@@ -1,0 +1,44 @@
+
+package com.oio.wawj.dao;
+
+
+
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+
+import com.oio.wawj.bean.Acms;
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.Org;
+import com.oio.wawj.bean.ParameterOrgRela;
+import com.oio.wawj.bean.SubsRela;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.util.PageListData;
+
+
+
+public interface StaffDAO extends BaseDAO<User,Long>{
+	public PageListData findList(Map<String, Object> param, int currentPage,
+			int pageSize);
+	public PageListData findExportList(Map<String, Object> param, int currentPage,
+			int pageSize);
+	public  JSONArray getChannelList( final Long operator);
+	public Acms findByAcms(final String acms);
+	public  String getDutyList( final Long operator);
+	public Org findOrgByName(final String orgName);
+	public Channel findChannelByName(final String name);
+	public List getUserAcmsRela(final Long userId,final String channel);
+	public Channel findChannelById(final Integer id);
+	public ParameterOrgRela findRingBySetId(final String id);
+	public List<Object> findSubsRelaByUserId(final String id);
+	public List<Object> findUnSubsRelaByUserId(final String id);
+	public List<Object> findSubsRelaByXnum(final String xnum);
+	public Org findOrgById(final Long id,final String setId);
+	public Org findOrgById(final Long id);
+	public List<Object> findSubsRelaByCodeAndAcms(final String id,final String acms);
+	public List findAcmsByChNameAndCode(final String chName,final String code,final String name);
+	public List<Object> findChannelRela();
+	public String importExcel(List<Object[]> list);
+
+}

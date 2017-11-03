@@ -1,0 +1,201 @@
+package com.oio.wawj.dao.impl;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.springframework.orm.hibernate3.HibernateCallback;
+
+
+import com.oio.wawj.bean.Acms;
+import com.oio.wawj.bean.CdrCall;
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.Org;
+import com.oio.wawj.dao.CallRecordsDAO;
+import com.oio.wawj.dao.OverviewDAO;
+import com.oio.wawj.util.AboutOperator;
+import com.oio.wawj.util.PageListData;
+
+
+
+/**
+ * 主要功能：Overview相关的DAO实现类，主要包括对SubsRela表，SubsRela的操作方法
+
+ */
+public class OverviewDAOImpl extends BaseDAOImpl<CdrCall,Long> implements OverviewDAO{
+
+	
+	@SuppressWarnings("unchecked")
+	public Org findOrgNameByOrgId(final Integer orgId) {
+		return  (Org) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+//						Long idd = Long.parseLong(id);
+					    String setId = AboutOperator.getUser().getSetId();
+					    String hql =null;
+					     if(!setId.equals("0"))
+						 hql = "from Org o " +
+										" where o.id.orgId = "+orgId + " and o.id.setId = " + setId;		
+					     else
+					    	 hql = "from Org o " +
+										" where o.id.orgId = "+orgId ;
+						Query query = s.createQuery(hql);
+						List list = query.list();
+						return (list.size()==0)?null:query.list().get(0);	
+
+					}
+				});
+	}
+	@SuppressWarnings("unchecked")
+	public List getSecretNoCondition(final Long orgId,final Long operatorId,final String roleName) {
+		return  (List) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {	
+						String setId="";
+//						if(!AboutOperator.getUser().equals("A"))
+						   setId=AboutOperator.getUser().getSetId();
+						List list = new ArrayList();
+						 String sql1=" select getChildList("+orgId+","+setId+") as childStr  ";
+						// String childStr = (String) getSession().createSQLQuery(sql1).uniqueResult();
+						 SQLQuery query0 =s.createSQLQuery(sql1);
+						 query0.addScalar("childStr", Hibernate.STRING);
+						 String childStr=  query0.uniqueResult().toString();
+						 String hql;
+						 String ihql;
+						 String vhql;
+						 if(roleName!=null&&!"".equals(roleName)&&"超级管理员".equals(roleName)){
+							 hql = "select count(*) as total from acms "; 
+							 ihql= "select count(*) as itotal from acms where status='I' ";
+							 vhql= "select count(*) as vtotal from acms where status='V' ";
+						 }else{
+							 hql = "select count(*) as total from acms where acms.code in(select distinct(a.code) from areacode_setid_rela a,user b where a.set_id=b.set_id and a.set_id='"+setId+"')"; 
+							 ihql= "select count(*) as itotal from acms where status='I' and acms.code in(select distinct(a.code) from areacode_setid_rela a,user b where a.set_id=b.set_id and a.set_id='"+setId+"')"; 
+							 vhql= "select count(*) as vtotal from acms where status='V' and acms.code in(select distinct(a.code) from areacode_setid_rela a,user b where a.set_id=b.set_id and a.set_id='"+setId+"')"; 
+						 }						 
+						 /*String hql = "select count(*) as total from acms "; 
+							String ihql= "select count(*) as itotal from acms where status='I' ";
+							String vhql= "select count(*) as vtotal from acms where status='V' ";*/
+						 String ohql="";
+						 String chql="";
+						if(roleName!=null&&!"".equals(roleName)&&"超级管理员".equals(roleName)){
+							ohql= "select count(*) as ototal from acms a,user_acms_rela uar,user u" +
+									" where a.acms_id=uar.acms_id " +
+									" and u.user_id=uar.user_id " +
+									" and uar.purpose='O' and uar.state='V' and u.org_id in ("+childStr+") ";
+							/*chql= "select count(*) as ctotal from acms a,user_acms_rela uar ,user u" +
+									" where a.acms_id=uar.acms_id " +
+									" and u.user_id=uar.user_id " +
+									" and uar.purpose='C' and uar.state='V'  and u.org_id in ("+childStr+")";*/
+							chql="select count(*) as ctotal from user_acms_rela,acms,user where user_acms_rela.acms_id=acms.acms_id and user_acms_rela.state='V' and  user_acms_rela.user_id=user.user_id";
+						}else{
+							ohql= "select count(*) as ototal from acms a,user_acms_rela uar,user u" +
+									" where a.acms_id=uar.acms_id " +
+									" and u.user_id=uar.user_id " +
+									" and uar.purpose='O' and uar.state='V' and u.org_id in ("+childStr+") " +
+									" and u.set_id = "+setId;
+							/*chql= "select count(*) as ctotal from acms a,user_acms_rela uar ,user u" +
+									" where a.acms_id=uar.acms_id " +
+									" and u.user_id=uar.user_id " +
+									" and uar.purpose='C' and uar.state='V'  and u.org_id in ("+childStr+")" +
+									" and u.set_id = "+setId;*/
+							chql="select count(*) as ctotal from user_acms_rela,acms,user where user_acms_rela.acms_id=acms.acms_id and user_acms_rela.state='V' and  user_acms_rela.user_id=user.user_id and user.set_id='"+setId+"'";
+
+						}
+						
+					
+						SQLQuery query = s.createSQLQuery(hql); 
+						query.addScalar("total",Hibernate.LONG);
+						int total = ((Long)query.uniqueResult()).intValue();
+						
+						SQLQuery iquery = s.createSQLQuery(ihql);
+						iquery.addScalar("itotal",Hibernate.LONG );
+						int itotal = ((Long)iquery.uniqueResult()).intValue();
+						
+						SQLQuery vquery = s.createSQLQuery(vhql); 
+						vquery.addScalar("vtotal",Hibernate.LONG);
+						int vtotal = ((Long)vquery.uniqueResult()).intValue();
+						
+						SQLQuery oquery = s.createSQLQuery(ohql); 
+						oquery.addScalar("ototal",Hibernate.LONG);
+						int ototal = ((Long)oquery.uniqueResult()).intValue();
+						
+						SQLQuery cquery = s.createSQLQuery(chql); 
+						cquery.addScalar("ctotal",Hibernate.LONG);
+						int ctotal = ((Long)cquery.uniqueResult()).intValue();
+						
+						list.add(total);
+						list.add(itotal);
+						list.add(vtotal);
+						list.add(ototal);
+						list.add(ctotal);
+						return list;	
+
+					}
+				});
+	}
+	@SuppressWarnings("unchecked")
+	public List getCallStatistic(final Long orgId,final Long operatorId,final String roleName) {
+		return  (List) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+//						Long idd = Long.parseLong(id);
+					
+						/*String hql = "select au.purpose,cc.call_type,count(*) as total from cdr_call cc" +
+								" left join (select uar.purpose,a.acms from acms a,user_acms_rela uar" +
+								" where a.acms_id=uar.acms_id) au on cc.acms=au.acms " +
+								" group by au.purpose,cc.call_type";*/
+						String hql;
+						if(roleName!=null&&!"".equals(roleName)&&"超级管理员".equals(roleName)){
+//							hql="select uar.purpose,cdr_call.call_type,count(*) as total from cdr_call,user_acms_rela uar,acms where uar.acms_id=acms.acms_id and acms.acms=cdr_call.acms and TO_DAYS(cdr_call.call_time)=TO_DAYS(NOW()) group by uar.purpose,cdr_call.call_type"; 
+							hql="select 'C' as 'purpose',cdr_call.call_type,count(*) as total from cdr_call where TO_DAYS(cdr_call.call_time)=TO_DAYS(NOW()) group by cdr_call.call_type";
+						}else{
+							String setId=AboutOperator.getUser().getSetId();
+//							hql="select uar.purpose,cdr_call.call_type,count(*) as total from cdr_call,user_acms_rela uar,acms,user,areacode_setid_rela where uar.acms_id=acms.acms_id and acms.acms=cdr_call.acms and TO_DAYS(cdr_call.call_time)=TO_DAYS(NOW()) and acms.code=areacode_setid_rela.code and areacode_setid_rela.set_id=user.set_id and user.set_id='"+setId+"'group by uar.purpose,cdr_call.call_type";
+//							hql="select uar.purpose,cdr_call.call_type,count(*) as total from cdr_call,user_acms_rela uar,(select * from acms where acms.code in(select distinct(a.code) from areacode_setid_rela a,user b where a.set_id=b.set_id and a.set_id='"+setId+"'))acms where uar.acms_id=acms.acms_id and acms.acms=cdr_call.acms and TO_DAYS(cdr_call.call_time)=TO_DAYS(NOW()) group by uar.purpose,cdr_call.call_type";
+							hql="select 'C' as 'purpose',cdr_call.call_type,count(*) as total from cdr_call where TO_DAYS(cdr_call.call_time)=TO_DAYS(NOW()) group by cdr_call.call_type";
+						}
+						SQLQuery query = s.createSQLQuery(hql).addScalar("purpose", Hibernate.STRING)
+								.addScalar("call_type", Hibernate.STRING)
+								.addScalar("total", Hibernate.LONG);
+						
+						List list = query.list();
+						return list;	
+					}
+				});
+	}
+	
+	
+	
+	public  String getFindRoleNameByUserId( final Long userId){
+		return  ( String) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+						 JSONObject jsonObject = new JSONObject();
+						 JSONArray jsonArray = new JSONArray();  
+						String sql = " select role_name from user_role ur " +
+								     " inner join role r on r.role_id=ur.role_id " +
+								     " where ur.user_id="+userId;
+						
+						Query query = s.createSQLQuery(sql);
+						String role_name = (String) query.list().get(0);
+						
+//                        System.out.println(sql);
+//						System.out.println(role_name+"++++++++++++++name+++++++++");
+						return role_name; 
+					}
+				});
+	}
+}

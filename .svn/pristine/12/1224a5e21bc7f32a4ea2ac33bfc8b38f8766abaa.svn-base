@@ -1,0 +1,58 @@
+package com.oio.wawj.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+
+import com.oio.wawj.bean.CdrCall;
+import com.oio.wawj.dao.OnHookSmsRecordDAO;
+import com.oio.wawj.service.OnHookSmsRecordService;
+import com.oio.wawj.util.PageListData;
+@Entity
+public class OnHookSmsRecordServiceImpl implements OnHookSmsRecordService {
+
+	@ManyToOne
+	private OnHookSmsRecordDAO dao;
+	
+	
+	
+	
+	public OnHookSmsRecordDAO getDao() {
+		return dao;
+	}
+
+
+
+
+	public void setDao(OnHookSmsRecordDAO dao) {
+		this.dao = dao;
+	}
+
+
+
+
+	@Override
+	public PageListData findOnHookSmsRecord(Map param,int currentPage, int pageSize) {
+		
+		String sql = " select o.timestamp ,o.target_number as targetNumber ,o.state , o.scenario ,o.content ,o.call_id as callId," +
+				"o.user_name as userName,o.charge_info as chargeInfo ,o.cnt_sms as cntsms";
+	   String sql1=	" from on_hook_sms_record o" +
+	   		        " inner join user u on u.name=o.user_name " ;  
+		
+
+		// TODO Auto-generated method stub
+	   
+		return dao.getOnHookSmsRecord(sql,sql1,param, currentPage, pageSize);
+	}
+	
+	@Override
+	public List findCdrCallById(String callId) {
+	
+	   
+		return dao.getCdrCallById(callId);
+	}
+	
+	
+}

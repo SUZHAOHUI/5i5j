@@ -1,0 +1,11 @@
+package com.oio.wawj.dao;
+
+import java.util.Map;
+
+import com.oio.wawj.bean.OperationLog;
+import com.oio.wawj.util.PageListData;
+
+
+public interface OperationLogDAO extends BaseDAO<OperationLog, Long> {
+	public PageListData findOperationLogList(final Map userParam, final Map timeParam, final int currentPage, final int pageSize,final String roleName);
+}

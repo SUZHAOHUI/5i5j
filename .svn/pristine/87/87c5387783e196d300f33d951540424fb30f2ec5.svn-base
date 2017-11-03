@@ -1,0 +1,16 @@
+package com.oio.wawj.dao;
+
+import com.oio.wawj.bean.Template;
+
+public interface TemplateDAO extends BaseDAO<Template,Short> {
+
+	
+	public String getfindTemplate();
+	
+	public String getfindTemplateName();
+
+	public Template getfindById(short templateId);
+	
+	public String getfindNotificationScenario();
+
+}

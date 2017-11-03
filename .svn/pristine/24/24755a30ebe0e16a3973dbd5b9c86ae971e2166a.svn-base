@@ -1,0 +1,19 @@
+package com.oio.wawj.dao;
+
+import java.util.Map;
+
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.ChannelId;
+import com.oio.wawj.bean.Ringtone;
+import com.oio.wawj.util.PageListData;
+
+public interface RingtoneDAO extends BaseDAO<Ringtone,Short>{
+
+	public String getfindRingtone();
+	
+	public String getfindRingtoneUrl(short Id);
+	
+	public Ringtone getFindId(final short id);
+	
+	public String getList();
+}

@@ -1,0 +1,1155 @@
+
+package com.oio.wawj.struts.action;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.sql.Timestamp;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.struts2.ServletActionContext;
+
+import com.mongodb.util.JSON;
+import com.oio.wawj.bean.Function;
+import com.oio.wawj.bean.Org;
+import com.oio.wawj.bean.RoleFunctions;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.bean.UserRole;
+import com.oio.wawj.service.FunctionService;
+import com.oio.wawj.service.OperationLogService;
+import com.oio.wawj.service.OverviewService;
+import com.oio.wawj.service.RoleFunctionsService;
+import com.oio.wawj.service.UserService;
+import com.oio.wawj.util.AboutOperator;
+import com.oio.wawj.util.DateTime;
+import com.oio.wawj.util.OVLoadProperties;
+import com.oio.wawj.util.PageListData;
+import com.oio.wawj.util.SecurityHelper;
+import com.opensymphony.xwork2.ActionContext;
+
+/**
+ * 
+ * @author
+ */
+public class UserAction extends BaseAction {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	private User user ;
+
+	private UserService userService;
+	private RoleFunctionsService service;
+	private FunctionService functionService;
+	private OverviewService overviewService;
+
+	private OperationLogService operationLogService;
+
+
+
+	private Long userId;
+	private Long orgId;
+	private String code;
+	private String name;
+	private String address;
+	private String tel;
+	private String sex;
+	private String idcard;
+	private String email;
+	private String password;
+	private Short dataPermission;
+	private Short functionPermission;
+	private String type;
+	private String duty;
+	private String status;
+	private Timestamp statusDate;
+	private String setId;	
+	private Long Id;
+	private String orgName;
+	private String result;
+	private String userList;
+    private String List;
+    private String roleList;
+
+    private JSONObject userResult;
+
+
+
+
+//
+//	/**
+//	 * 锟斤拷录
+//	 * @return input/loginSuccess
+//	 */
+//	public String login() {
+//		String code1=user.getCode();
+//        try {
+//        	code1 = new String(code1.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//		String str = SecurityHelper.DESEncrypt(user.getPassword(), OVLoadProperties.getInstance().getProperties("userMD5Key"));
+//		
+//		user.setPassword(str);
+//		user.setCode(code1);
+//		user = userService.checkLogin(user);
+//      
+//		JSONObject jo=new JSONObject();
+//		if (user != null) {
+//			ActionContext.getContext().getSession().put("user", user);
+//
+//			System.out.println("login"+user.getSetId());
+////			operationLogService.recordLog(null,null, "User Login", "login success");		 
+//			 jo.put("loginFlag", true);
+//			 String userType = user.getType();
+//			 if(userType.equals("A"))
+//			 {
+//			    jo.put("permission", true);
+//			 }else{
+//				 jo.put("permission", false);
+//			 }
+//			 jo.put("setId",user.getSetId());
+//			 setResult(jo.toString());
+//			 operationLogService.recordLog("userLogin", "登陆", "控制台登陆");
+//			 this.deleteAudio();
+//			  return SUCCESS;
+//		} else {
+//			 jo.put("loginFlag", false);		
+//			 setResult(jo.toString());
+//			 return SUCCESS;
+//		}
+//	}
+	public String login(){
+	     
+	    JSONObject jo=new JSONObject();
+	    jo.put("loginFlag", true);
+	    if(AboutOperator.getUser().getType().equals("A"))
+			 {
+			    jo.put("permission", true);
+			 }else{
+				 jo.put("permission",false);
+			 }
+			 System.out.println(AboutOperator.getUser().getName());
+			 setResult(jo.toString());
+			 operationLogService.recordLog("userLogin", "登陆", "控制台登陆");
+			  this.deleteAudio();
+			  return SUCCESS;
+		
+	}
+
+	public   void deleteAudio(){
+		System.out.println("delete file");
+		ActionContext ct = ActionContext.getContext();
+	    HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+	    String targetDirectory = ServletActionContext.getServletContext().getRealPath("/record"); 
+      //  System.out.println(targetDirectory);
+	    File file = new File(targetDirectory);
+		if (!file.isDirectory()) {
+		   
+		    file.delete();
+		} else if (file.isDirectory()) {
+         
+		    File[] fileList = file.listFiles();
+		    for (int i = 0; i < fileList.length; i++) {
+		        File delfile = fileList[i];
+		        if (!delfile.isDirectory()) {
+		            delfile.delete();
+		           // System.out.println("删锟斤拷锟侥硷拷锟缴癸拷");
+		        } 
+		    }
+		   
+		}
+       
+  
+	}
+	
+	public String queryLoginRole(){
+
+		System.out.println("----------------");
+		Long userId = AboutOperator.getUser().getUserId();
+		//Long userId=(long) 950546;
+		System.out.println(userId+"-------userId");
+		
+		List<UserRole> ur = userService.findByUserId(userId);
+		String roleId =String.valueOf(ur.get(0).getId().getRoleId()) ;
+		
+        for (int i = 0; i < ur.size(); i++) {
+	    System.out.println(ur.get(i).getId().getRoleId()+"-------roleId");
+      }
+			
+		List<RoleFunctions> RoleFunctionList = service.findByRoleId(Short.parseShort(roleId));
+
+		JSONArray ja = new JSONArray();
+       for (RoleFunctions srf : RoleFunctionList ) {
+			JSONObject jo = new JSONObject();
+			Function sf=functionService.findFunctionById(srf.getId().getFunctionId());
+			if(sf!=null){
+			jo.put("id", srf.getId().getFunctionId());
+			jo.put("icon",sf.getIcon());
+			jo.put("name", sf.getFunctionName());
+			jo.put("src", sf.getSrc());
+			ja.add(jo);
+			}
+		}
+	
+		setResult(ja.toString());
+		System.out.print(result);
+		return SUCCESS;
+	}
+	/**
+	 * 锟角筹拷
+	 * 
+	 * @return logOut
+	 */
+	 private final static String ENCODE = "UTF8";
+	public void logOut() throws Exception {
+		ActionContext ct = ActionContext.getContext();
+	    HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+	    HttpServletResponse response = (HttpServletResponse) ct.get(ServletActionContext.HTTP_RESPONSE);
+		System.out.println("logOut");
+		ActionContext.getContext().getSession().clear();
+//		String url="http://sso.bacic5i5j.com/logout?service=http://10.1.22.151:8080/5i5j";
+//		result = URLDecoder.decode(url, ENCODE);
+//	
+//	    request.getRequestDispatcher(result).forward(request,response);
+		//return "logOut";
+	}
+	
+
+
+
+	/**
+	 * 
+	 * @return add
+	 */
+	public String addUser() {
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+			
+		String  name=jo.getString("name"); 
+		String  code=jo.getString("code");
+		String  deptId=jo.getString("orgId");
+	
+		JSONObject resqJo=new JSONObject();
+		
+		if(deptId==null||deptId.equals("")){
+		    resqJo.put("message", "新增失败！请选择您的所属部门哦");  
+		    resqJo.put("type", "error");  
+
+			setResult(resqJo.toString());
+			return SUCCESS;
+		}
+		
+		String  setId="";
+		String  orgId="";
+        if(deptId!=null&&!deptId.equals("")){
+        	orgId=deptId.substring(0,10);
+            setId=deptId.substring(10,15);
+       }
+		
+//   	try {
+//			name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+
+		User user1 = new User();
+		
+		user1.setCode(code);
+		
+		user1.setName(name);
+
+		user1.setStatus("V");
+		user1.setType("A");
+		
+		user1.setDataPermission((short)(Integer.parseInt(jo.getString("dataPermission"))));
+		//user1.setFunctionPermission((short)(Integer.parseInt(jo.getString("functionPermission"))));
+/*		int funPermission = Integer.parseInt(jo.getString("functionPermission"));
+		if(funPermission==0){
+			user1.setDuty("管理员");
+		}else{
+			user1.setDuty("超级管理员");
+		}*/
+        user1.setStatusDate(DateTime.getCurrentDateTime());
+        user1.setSetId(setId);
+        user1.setOrgId(Long.valueOf(orgId));
+        
+//        String str = SecurityHelper.DESEncrypt(password, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+//        user1.setPassword(str);
+        userService.save(user1);
+		
+		setOperationLogResult("result:'" + getText("operatelog.role.add.success") +"', reason:''");
+		
+	    resqJo.put("message", "新增成功！");  
+	    resqJo.put("type", "success");  
+		setResult(resqJo.toString()); 
+		 System.out.println("result--------"+userResult); 
+		return "success";
+		
+	
+		
+	}
+	
+	
+
+
+	
+	/**
+	 * delete
+	 * @return successDelete
+	 */
+	public String delete() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		//锟斤拷取页锟芥传锟捷碉拷ID
+		String Id=request.getParameter("id");
+//		userService.deleteUserById(Long.parseLong(id));
+		userService.deleteById(Long.valueOf(Id));
+		setOperationLogResult("result:'" + getText("operatelog.role.delete.success") +"', reason:''");
+		return "success";
+	}
+
+    	
+	
+	
+	
+	/**
+	 * update
+	 * @return successUpdate
+	 */
+	public String update() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		
+		
+		String  name=jo.getString("name"); 
+		String  code=jo.getString("code");
+		
+		//String  setId=jo.getString("company");
+		String  deptId=jo.getString("orgId");
+		
+		JSONObject resqJo=new JSONObject();
+		
+		if(deptId==null||deptId.equals("")){
+		    resqJo.put("message", "修改失败！请选择您的所属部门哦");  
+		    resqJo.put("type", "error");  
+
+			setResult(resqJo.toString());
+			return SUCCESS;
+		}
+		
+		String  setId="";
+		String  orgId="";
+        if(deptId!=null&&!deptId.equals("")){
+       	    orgId=deptId.substring(0,10); 
+            setId=deptId.substring(10,15);
+       }
+		
+//   	try {
+//			name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+   	
+		String Id = jo.getString("id");
+		User user = userService.findById(Long.valueOf(Id));
+		
+		user.setCode(code);
+		user.setName(name);
+		user.setSetId(setId);
+		user.setOrgId(Long.valueOf(orgId));
+
+/*		if(jo.getString("status") != null)
+			user.setStatus(jo.getString("status"));
+		else
+			user.setStatus("V");*/
+		user.setStatusDate(DateTime.getCurrentDateTime());
+		
+		user.setDataPermission((short)(Integer.parseInt(jo.getString("dataPermission"))));
+		//user.setFunctionPermission((short)(Integer.parseInt(jo.getString("functionPermission"))));
+		
+	
+		userService.update(user);
+		setOperationLogResult("result:'" + getText("operatelog.role.update.success") +"', reason:''");
+	    resqJo.put("message", "修改成功！");  
+	    resqJo.put("type", "success");  
+
+		setResult(resqJo.toString());
+		return SUCCESS;
+	}
+	
+	/**
+	 * blocked
+	 */
+	public String blocked() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		
+		String Id = jo.getString("id");
+//		userService.deleteUserById(Long.parseLong(id));
+		User user = userService.findById(Long.valueOf(Id));
+		
+		if(jo.getString("status").equals("V"))
+			user.setStatus("I");
+		else
+			user.setStatus("V");
+		
+		userService.update(user);
+		
+		setOperationLogResult("result:'" + getText("operatelog.role.delete.success") +"', reason:''");
+		return "success";
+	}
+
+	
+	/**
+	 * 重置密码
+	 */
+	public String updatePassword() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String Id=request.getParameter("id");
+		
+		User user = userService.findById(Long.valueOf(Id));
+		
+		String m=String.valueOf(Math.random());
+		
+		String math=m.substring(5,11);
+		
+		System.out.println(math+"-----------随机密码");
+		String str = SecurityHelper.DESEncrypt(math, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+		user.setPassword(str);
+		
+		userService.update(user);
+		result=math;
+		setOperationLogResult("result:'" + getText("operatelog.role.update.success") +"', reason:''");
+		return "success";
+	}
+	
+	
+	
+	
+	
+	/**
+	 * 锟斤拷询锟叫憋拷
+	 * @return query
+	 */
+	public String queryList() {
+			ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+			
+	
+			String name = request.getParameter("name");
+			String code = request.getParameter("code");
+			String address = request.getParameter("address");
+			
+			Map<String, String> param = new HashMap<String, String>();
+			
+			if (!"".equals(name) &&  null !=name && !name.equals("undefined")) {
+//				 try {
+//					 name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//				} catch (UnsupportedEncodingException e) {
+//					e.printStackTrace();
+//				}
+				 //锟斤拷锟斤拷
+				param.put("name like ", "%" + name + "%");
+			}
+			if (!"".equals(code) &&  null !=code && !code.equals("undefined")) {
+				//锟斤拷锟斤拷 
+				param.put("code like ", "%" + code + "%");
+			}
+			if (!"".equals(address) &&  null !=address && !address.equals("undefined")) {
+				//锟斤拷锟斤拷 
+				param.put("address like ", "%" + address + "%");
+			}
+			
+			pageListData = userService.findList(param, 1, 5);
+			
+			JSONObject pageviewjson = pageListData.parseJSON(User.class,
+					"name", "status","orgId","Id" ,"code","password","address",
+					"tel","sex","email","statusDate");
+			//锟斤拷值锟斤拷前台
+			result = pageviewjson.toString();
+		
+//		System.out.print(result);
+
+		return "success";
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @return query
+	 */
+	public String queryUserList() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+        
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+	   
+        String  name=jo.getString("name"); 
+        String  code=jo.getString("code"); 
+        String  address=jo.getString("address"); 
+        String  currentPage1=jo.getString("currentPage");
+
+//        try {
+//        	name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//        	code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//        	address = new String(address.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+
+	       
+		 Map<String, String> param = new HashMap<String, String>();
+			
+			if( name != null && !name.equals("") ){
+				param.put("name", name );			
+			}
+		   	
+			if( code != null && !code.equals("") ){
+				param.put("code", code );			
+			}
+			if( address != null && !address.equals("") ){
+				param.put("address", address );			
+			}
+			
+			if(currentPage1 != null && !currentPage1.equals("") ){
+				currentPage=Integer.valueOf(currentPage1);
+			}
+			
+			
+		    PageListData pageListData = userService.findList(param,currentPage,pageSize);		
+
+			if(pageListData.getTotalcount()!=0)
+				{		
+					JSONObject pageviewjson = pageListData.parseJSON(0,"userId","orgId","orgName","name", "code","sex",
+							"email","tel","status","statusDate","address");	
+					  System.out.println(pageviewjson.toString());
+					  setResult(pageviewjson.toString());
+				}else{
+						  
+				setResult("[]");	
+			    }
+	    
+			return SUCCESS;
+        
+	}
+	
+	
+	/**
+	 * 
+	 * @return addUserRole
+	 */
+	public String addUserRole() {
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+
+		String  name=jo.getString("name"); 
+		String  code=jo.getString("code"); 
+		String  sex=jo.getString("sex");
+		//String  password=jo.getString("password");
+		String  status=jo.getString("status");
+		String  email=jo.getString("email");
+		String  tel=jo.getString("tel");
+		String  address=jo.getString("address");
+		String  orgId=jo.getString("orgId");
+//		try {
+//			name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			email = new String(email.getBytes("iso8859-1"),"UTF-8");
+//			address = new String(address.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+	    
+		
+		User user1 = new User();
+		user1.setName(name);
+		user1.setCode(code);
+		user1.setSex(sex);
+		user1.setPassword("000000");
+		user1.setStatus(status);
+		user1.setEmail(email);
+		user1.setTel(tel);
+		user1.setAddress(address);
+		
+		user1.setOrgId(Long.valueOf(orgId));
+		
+		user1.setDataPermission((short) 1);
+		user1.setFunctionPermission((short) 1);
+		user1.setStatusDate(DateTime.getCurrentDateTime());
+
+		userService.save(user1);
+		setOperationLogResult("result:'" + getText("operatelog.role.add.success") +"', reason:''");
+		return "success";
+		
+	}
+	
+	/**
+	 * updateUserRole
+	 * @return 
+	 */
+	public String updateUserRole() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		
+		String Id = jo.getString("id");
+		String  name=jo.getString("name"); 
+		String  code=jo.getString("code"); 
+		String  sex=jo.getString("sex");
+		String  password=jo.getString("password");
+		String  status=jo.getString("status");
+		String  email=jo.getString("email");
+		String  tel=jo.getString("tel");
+		String  address=jo.getString("address");
+		
+//		try {
+//			name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			email = new String(email.getBytes("iso8859-1"),"UTF-8");
+//			address = new String(address.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+
+		User user1 = userService.findById(Long.valueOf(Id));
+		
+		user1.setName(name);
+		user1.setCode(code);
+		user1.setSex(sex);
+		user1.setPassword(password);
+		user1.setStatus(status);
+		user1.setEmail(email);
+		user1.setTel(tel);
+		user1.setAddress(address);
+		
+		user1.setStatusDate(DateTime.getCurrentDateTime());
+		
+		userService.update(user1);
+		setOperationLogResult("result:'" + getText("operatelog.role.update.success") +"', reason:''");
+		return "success";
+	}
+	
+
+	/**
+	 * @return the userList
+	 */
+	public String getUserList() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+//		String setId="10001";
+//		String duty="超级管理员";
+		String setId=AboutOperator.getUser().getSetId();
+		String fp=String.valueOf(AboutOperator.getUser().getFunctionPermission());
+			
+		Map<String, String> param = new HashMap<String, String>();
+		if( setId != null && !setId.equals("") ){
+			param.put("setId", setId );			
+		}
+		if( fp != null && !fp.equals("") ){
+			param.put("fp", fp );			
+		}
+		
+        System.out.println(setId+"-----------setId");
+        System.out.println(fp+"-----------fp");
+        
+		
+		String currentPage1=request.getParameter("currentPage");
+		
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+	
+	   // pageListData = userService.findList(currentPage,pageSize);	
+	    PageListData pageListData = userService.findAll(param,currentPage,pageSize);
+	    
+		if(pageListData.getTotalcount()!=0)
+		{		
+			JSONObject pageviewjson = pageListData.parseJSON(0,"userId","name", "code",
+					"status","dataPermission","functionPermission","password","setId","orgId","orgName");	
+			  System.out.println(pageviewjson.toString());
+			  setResult(pageviewjson.toString());
+		}else{
+				  
+		setResult("[]");	
+	    }
+
+	return SUCCESS;
+	}
+
+
+	
+	public String Info(){
+		
+		User user=(User)ActionContext.getContext().getSession().get("user");
+	
+	    JSONObject jo=new JSONObject();
+	    jo.put("name",user.getName() ); //姓名
+//	    jo.put("code",user.getCode() );
+	    jo.put("duty",user.getDuty() ); //职务
+	    orgId=user.getOrgId();
+	    Org org = overviewService.findOrgNameByOrgId(Integer.parseInt(String.valueOf(orgId)));
+	    jo.put("orgName", org.getOrgName()); //部门
+	    setResult(jo.toString());		
+	    return "success";	
+	
+	}
+	//用户密码修改
+	public String resetPassword(){
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+
+		String jstr = request.getParameter("jsonData");
+		JSONObject jo=JSONObject.fromObject(jstr);
+		String oldPwd=jo.getString("oldPwd");
+		String pwd1 = request.getParameter("pwd");
+	    String pwd2 = request.getParameter("pwd2");
+	    String oldP = SecurityHelper.DESEncrypt(oldPwd, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+	    User user=userService.findById(AboutOperator.getOperatorId());
+	    String existPwd = user.getPassword();
+		JSONObject jon=new JSONObject();
+	    if(!existPwd.equals(oldP)){    
+	    	jon.put("result", "输入的原密码不正确");
+	    	setResult(jon.toString());
+	    	 return SUCCESS;	
+	    }
+	    if(pwd1!=null&&pwd2!=null&&pwd1.equals(pwd2)){
+		      String str = SecurityHelper.DESEncrypt(pwd1, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+			  User  suser= userService.findById(user.getUserId());
+		         suser.setPassword(str);
+		        userService.update(suser);
+	    }else{
+	    	
+	    	jon.put("result", "输入的两次密码不一致");
+	    	setResult(jon.toString());
+	    }
+		       return SUCCESS;	
+	 }
+	
+	public void updateUserTel(){
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String tel = request.getParameter("telInfoIn");
+		User user=(User)ActionContext.getContext().getSession().get("");
+		
+		user.setTel(tel);
+		userService.update(user);
+		
+	}
+	
+	public String test(){
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		StringBuilder sb = new StringBuilder(); 
+		BufferedReader responseReader; 
+		
+		try{
+		ServletInputStream inputStrem = request.getInputStream();
+
+		String readLine; 
+       
+        		responseReader = new BufferedReader(new InputStreamReader(inputStrem));
+        		 while ((readLine = responseReader.readLine()) != null) {   
+	  			     sb.append(readLine).append("\n");   
+	  			   }  	
+	  		     System.out.println("----post"+sb.toString());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		System.out.println(request.getParameter("name"));
+		String name=request.getParameter("name");
+	
+		//JSONObject.fromObject(request.getParameter("name")).get("firstName")
+		Enumeration<String> names = request.getParameterNames();
+		
+		   while (names.hasMoreElements()) {
+			  System.out.println( "------"+names.nextElement());
+	        }
+		//request.
+		result="1234";
+		return SUCCESS;
+	}
+	/**
+	 * @param List the List to set
+	 */
+	public void setUserList(String List) {
+		this.List = List;
+	}
+
+	/**
+	 * @return the roleList
+	 */
+	public String getRoleList() {
+		roleList = userService.findRoleAll();
+		setResult(roleList);
+		return "success";
+	}
+
+	/**
+	 * @param roleList the roleList to set
+	 */
+	public void setRoleList(String roleList) {
+		this.roleList = roleList;
+	}
+
+	/**
+	 * @return the user
+	 */
+	public User getUser() {
+		return user;
+	}
+
+	/**
+	 * @param user the user to set
+	 */
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	/**
+	 * @return the userService
+	 */
+	public UserService getUserService() {
+		return userService;
+	}
+
+	/**
+	 * @param userService the userService to set
+	 */
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
+
+
+
+	/**
+	 * @return the orgId
+	 */
+	public Long getOrgId() {
+		return orgId;
+	}
+
+	/**
+	 * @param orgId the orgId to set
+	 */
+	public void setOrgId(Long orgId) {
+		this.orgId = orgId;
+	}
+
+	/**
+	 * @return the orgName
+	 */
+	public String getOrgName() {
+		return orgName;
+	}
+
+	/**
+	 * @param orgName the orgName to set
+	 */
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+	}
+
+	/**
+	 * @return the code
+	 */
+	public String getCode() {
+		return code;
+	}
+
+	/**
+	 * @param code the code to set
+	 */
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the address
+	 */
+	public String getAddress() {
+		return address;
+	}
+
+	/**
+	 * @param address the address to set
+	 */
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	/**
+	 * @return the tel
+	 */
+	public String getTel() {
+		return tel;
+	}
+
+	/**
+	 * @param tel the tel to set
+	 */
+	public void setTel(String tel) {
+		this.tel = tel;
+	}
+
+	/**
+	 * @return the sex
+	 */
+	public String getSex() {
+		return sex;
+	}
+
+	/**
+	 * @param sex the sex to set
+	 */
+	public void setSex(String sex) {
+		this.sex = sex;
+	}
+
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
+	}
+
+	/**
+	 * @param email the email to set
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+
+
+
+	
+	public String getList() {
+		return List;
+	}
+
+
+	public String getIdcard() {
+		return idcard;
+	}
+	public void setIdcard(String idcard) {
+		this.idcard = idcard;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	public String getDuty() {
+		return duty;
+	}
+	public void setDuty(String duty) {
+		this.duty = duty;
+	}
+	public Timestamp getStatusDate() {
+		return statusDate;
+	}
+	public void setList(String list) {
+		List = list;
+	}
+
+
+
+	public void setStatusDate(Timestamp statusDate) {
+		this.statusDate = statusDate;
+
+	}
+
+	public void setFunctionPermission(Short functionPermission) {
+		this.functionPermission = functionPermission;
+	}
+
+	public String getSetId() {
+		return setId;
+	}
+	public void setSetId(String setId) {
+		this.setId = setId;
+	}
+
+	public Long getId() {
+		return Id;
+	}
+	public void setId(Long id) {
+		Id = id;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the result
+	 */
+	public String getResult() {
+		return result;
+	}
+
+	/**
+	 * @param result the result to set
+	 */
+	public void setResult(String result) {
+		this.result = result;
+	}
+
+	public short getDataPermission() {
+		return dataPermission;
+	}
+
+
+
+
+	public void setDataPermission(short dataPermission) {
+		this.dataPermission = dataPermission;
+	}
+
+
+
+
+	public RoleFunctionsService getService() {
+		return service;
+	}
+
+
+	public void setService(RoleFunctionsService service) {
+		this.service = service;
+	}
+
+
+	public short getFunctionPermission() {
+		return functionPermission;
+	}
+
+
+
+
+	public void setFunctionPermission(short functionPermission) {
+		this.functionPermission = functionPermission;
+	}
+
+
+
+
+	public FunctionService getFunctionService() {
+		return functionService;
+	}
+
+
+	public void setFunctionService(FunctionService functionService) {
+		this.functionService = functionService;
+	}
+	public OverviewService getOverviewService() {
+		return overviewService;
+	}
+
+
+	public void setOverviewService(OverviewService overviewService) {
+		this.overviewService = overviewService;
+	}
+	public OperationLogService getOperationLogService() {
+		return operationLogService;
+	}
+
+
+	public void setOperationLogService(OperationLogService operationLogService) {
+		this.operationLogService = operationLogService;
+	}
+	public JSONObject getUserResult() {
+		return userResult;
+	}
+	public void setUserResult(JSONObject userResult) {
+		this.userResult = userResult;
+	}
+
+	
+}

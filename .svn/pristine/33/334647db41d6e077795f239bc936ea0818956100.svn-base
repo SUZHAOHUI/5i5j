@@ -1,0 +1,1072 @@
+
+package com.oio.wawj.struts.action;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
+import org.apache.struts2.ServletActionContext;
+import com.oio.wawj.bean.Acms;
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.Org;
+import com.oio.wawj.bean.SubsRela;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.bean.UserAcmsRela;
+import com.oio.wawj.service.AxbService;
+import com.oio.wawj.service.NumberService;
+import com.oio.wawj.service.StaffService;
+import com.oio.wawj.service.TransferNumberService;
+import com.oio.wawj.service.UserAcmsRelaService;
+import com.oio.wawj.util.AboutOperator;
+import com.oio.wawj.util.AxChangeNum;
+import com.oio.wawj.util.AxOrder;
+import com.oio.wawj.util.AxUnSubs;
+import com.oio.wawj.util.AxbSub;
+import com.oio.wawj.util.DateTime;
+import com.oio.wawj.util.OVLoadProperties;
+import com.oio.wawj.util.SecurityHelper;
+import com.opensymphony.xwork2.ActionContext;
+
+/**
+ * 
+ * 
+ * @author
+ */
+public class StaffAction extends BaseAction {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private User user ;
+	private StaffService service;  
+	private UserAcmsRelaService uarService;
+    private AxbService aService;
+	private TransferNumberService tfService;
+	private NumberService numService;
+	private String result;	
+	private File staffFile;	
+	/**
+	 * 新增staff;
+	 * @return add
+	 */
+	public String add() {
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);	
+		String jStr=request.getParameter("jsonData"); 
+		System.out.println(jStr);
+		JSONObject jo = JSONObject.fromObject(jStr);
+		String code=jo.getString("code");//用户
+		String dataP = null;
+		if(jo.containsKey("dataP"))
+			dataP=jo.getString("power"); //权限
+		String frozen =null;
+		if(jo.containsKey("frozen"))    //冻结
+			frozen=jo.getString("frozen");
+		String orgId ="";
+		if(jo.containsKey("orgId"))
+			orgId=jo.getString("orgId");  //部门
+		String name=jo.getString("name");
+		String duty=jo.getString("duty");
+		String idcard=null;
+		if(jo.containsKey("idcard"))   //身份证号
+			idcard=jo.getString("idcard"); 
+//		 try {
+//			 duty = new String(duty.getBytes("iso8859-1"),"UTF-8");
+//			 name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			 code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			 } catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+		 // 小号绑定列表
+			String numberList=jo.getString("numberList");
+			JSONArray ja=JSONArray.fromObject(numberList); 
+			/*****    保存User    *****/
+			    User user = new User();
+				user.setName(name);
+				user.setCode(code);
+				
+				if(ja.size()!=0){
+			     JSONObject jo1=JSONObject.fromObject(ja.get(0));
+				 user.setTel(jo1.getString("master"));
+				}
+				user.setDuty(duty);
+				user.setType("S");
+				 String password="000000";
+			    String str = SecurityHelper.DESEncrypt(password, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+			    user.setPassword(str);
+				user.setIdcard(idcard);
+				if(dataP!=null&&dataP.equals("1"))
+					user.setDataPermission((short)1);
+				else
+					user.setDataPermission((short)0);	
+				if(frozen!=null&&frozen.equals("I"))
+					user.setStatus("I");
+				else
+					user.setStatus("V");	
+				user.setStatusDate(DateTime.getCurrentDateTime()); 
+						
+			    if(name!=null&&code!=null&&!name.equals("")&&!code.equals("")){
+			    	String orgStr= jo.getString("orgId");
+			    	Long orgid=Long.valueOf( orgStr.substring(0,10));
+			    	if(!jo.getString("orgId").equals(""))	    	 	
+			    	user.setOrgId(orgid);    	
+			    	String setId=orgStr.substring(10,15);
+			    	user.setSetId(setId);
+			    	User userExist = service.findUserByCode(code);
+			    	if(userExist!=null){
+			    		JSONObject job= new JSONObject();
+				    	//{ message: "新增成功！", type: 'success', }
+						job.put("message", "该用户已经存在");
+						job.put("type", "error");
+						setResult(job.toString());	
+			    	}else{
+			    		
+			    	JSONObject job= new JSONObject();
+			    	//{ message: "新增成功！", type: 'success', }
+					job.put("message", "新增成功");
+					job.put("type", "success");
+					setResult(job.toString());
+				    service.save(user);
+			    	}
+	            }else{
+					JSONObject job= new JSONObject();
+					job.put("message", "用户信息不能为空");
+					job.put("type", "error");
+					setResult(job.toString());
+					return "success"; 
+			   }
+		for(int i=0; i<ja.size();i++){
+				JSONObject json = (JSONObject) ja.get(i);
+				String channelVal = json.getString("channelVal");
+				
+				String anum = json.getString("master");
+				String xnum = json.getString("trumpet");
+				String upline = json.getString("upline");
+			
+				Acms ac=service.getAcmsByacms(xnum);
+				if(ac!=null){
+					Integer acmsId = ac.getAcmsId();
+				 //如果小号已经被分配则提醒
+					List<UserAcmsRela> uarList = uarService.findbyAcmsId(acmsId);
+//				  
+					if(uarList!=null){
+						JSONObject job= new JSONObject();
+						job.put("message", "小号已经被分配");
+						job.put("type", "error");
+						setResult(job.toString());
+						service.deleteById(user.getUserId());
+						return "success"; 
+				      } 
+					String operator = String.valueOf(AboutOperator.getOperatorId());
+					    
+				   SubsRela asr= new SubsRela();
+					 asr.setAnum(anum);
+					 asr.setXnum(xnum);	
+					 asr.setUserId(Integer.valueOf(user.getUserId().toString()));
+					 
+					 asr.setOperator(Integer.valueOf(operator));
+					 
+				//上线 则进行ax的绑定  ，绑定关系存在 SubsRela,并存于 user_acms_rela表中
+				if(upline.equals("true")){
+					   //进行ax绑定
+					  String res = AxOrder.axOrder(anum, xnum);
+					  JSONObject resjo=JSONObject.fromObject(res);
+					  UserAcmsRela uar=new UserAcmsRela();
+					     /*****    保存SubRelas    *****/
+					    if(resjo.getInt("result")==200)	    	
+						 	uar.setUserId(Integer.valueOf(user.getUserId().toString()));
+						if(channelVal.equals("call")){
+							 uar.setPurpose("O");
+						 }else{
+							 uar.setChannelId(Integer.valueOf(channelVal));
+							 uar.setPurpose("C");
+						 }
+	                         uar.setOperatorId(operator);
+	                         uar.setAcmsId(acmsId);
+						     uar.setState("V");
+						     uar.setStateDate(DateTime.getCurrentDateTime());
+						  uarService.save(uar);
+					     asr.setSubId(resjo.getString("subid"));
+						 asr.setState("B");
+						 asr.setStateDate(DateTime.getCurrentDateTime());
+						 aService.save(asr);		
+						 ac.setState("U");
+						 ac.setStateDate(DateTime.getCurrentDateTime());
+						 ac.setStatus("V");
+						 ac.setStateDate(DateTime.getCurrentDateTime());
+						 numService.update(ac);
+				      }
+			}else{
+				JSONObject job= new JSONObject();
+				job.put("message", "媒体小号【"+xnum+"】不存在");
+				job.put("type", "error");
+				setResult(job.toString());
+				service.deleteById(user.getUserId());
+				return "success";
+			}
+			
+		}
+		   
+               
+		return "success";
+		 
+	}
+	/**
+	 * 删除staff
+	 * @return successDelete
+	 */
+    public String delete(){
+    
+    	ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		Boolean browser = request.getHeader("User-agent").contains("Trident");
+		//通过ID找到员工
+		String code=request.getParameter("code");
+//		 try {
+//	         if(!browser)
+//			 code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			 } catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+		User user=service.findUserByCode(code);
+		/* 1.删除用户  即 状态置为‘I’*/
+		if(user!=null)
+		user.setStatus("I");
+		user.setStatusDate(DateTime.getCurrentDateTime());
+		service.update(user);
+		/* 2.解绑该用户下的所有号码关系*/
+		unBind(code);
+    	return "success";
+    }
+	
+    
+	/**
+	 * 删除staff
+	 * @return BatchDelete
+	 */
+    public String batchDelete(){
+    	ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		//通过ID找到员工
+		String userIdStr=request.getParameter("code");
+		String[] userIds = userIdStr.split(",");
+		
+		for(int i=0;i<userIds.length;i++)
+		{
+	
+			User user=service.findById(Long.valueOf(userIds[i]));	
+			/* 1.删除用户  即 状态置为‘I’*/
+			if(user!=null){
+			user.setStatus("I");
+			user.setStatusDate(DateTime.getCurrentDateTime());
+			service.update(user);
+			/* 2.解绑该用户下的所有号码关系*/
+			unBind(user.getCode());
+			}
+			
+			
+		}
+        result="success";
+    	return "success";
+    }
+    
+	/**
+	 * 冻结staff
+	 * @return successDelete
+	 */
+	public String freeze(){
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		//通过code找到员工
+		String userIds=request.getParameter("userId");
+		JSONArray ja=JSONArray.fromObject(userIds);
+		for(int i=0;i<ja.size();i++)
+		{
+		    User user=service.findById(Long.valueOf(ja.get(i).toString()));
+			user.setStatus("I");
+	 		user.setStatusDate(DateTime.getCurrentDateTime());
+			service.update(user);
+		}
+        	result="";
+		return "success";
+	}
+	/**
+	 * 解冻员工
+	 * @return successDelete
+	 */
+	public String unfreeze() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		//通过code找到员工
+		String userIds=request.getParameter("userId");
+		JSONArray ja=JSONArray.fromObject(userIds);
+		for(int i=0;i<ja.size();i++)
+		{
+		   User user=service.findById(Long.valueOf(ja.get(i).toString()));
+			user.setStatus("V");
+	        user.setStatusDate(DateTime.getCurrentDateTime());
+			service.update(user);
+		}
+        	result="";
+		return "success";
+	}
+	/**
+	 * 更换部门
+	 * @return successDelete
+	 */
+	public String changeOrg() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		//通过code找到员工
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo=JSONObject.fromObject(jstr);
+		
+		String userIds=jo.getString("list");
+		String orgId=jo.getString("id").substring(0,10);
+		String setId=jo.getString("id").substring(10,15);
+		//String 
+		JSONArray ja=JSONArray.fromObject(userIds);
+		for(int i=0;i<ja.size();i++)
+		{
+		    User user=service.findById(Long.valueOf(ja.get(i).toString()));
+			user.setOrgId(Long.valueOf(orgId));
+			user.setStatusDate(DateTime.getCurrentDateTime());
+			user.setSetId(setId);
+			service.update(user);
+		}
+        	result="";
+		return "success";
+	}
+	
+	/** 
+	 * 更新员工信息
+	 * @return success
+	 */
+	public String update(){
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);	
+		String jStr=request.getParameter("jsonData"); 
+		System.out.println(jStr);
+		JSONObject jo = JSONObject.fromObject(jStr);
+		String code=null;
+		if(jo.containsKey("code"))
+		 code=jo.getString("code");//用户
+		String dataP = null;
+		if(jo.containsKey("power"))
+			dataP=jo.getString("power"); //权限
+		String frozen =null;
+		if(jo.containsKey("frozen"))    //冻结
+			frozen=jo.getString("frozen");
+		String orgId ="";
+		if(jo.containsKey("orgId"))
+			orgId=jo.getString("orgId");  //部门
+		String name=jo.getString("name");
+		String duty=jo.getString("duty");
+		String idcard=null;
+		if(jo.containsKey("idcard"))   //身份证号
+			idcard=jo.getString("idcard"); 
+//		 try {
+//			 duty = new String(duty.getBytes("iso8859-1"),"UTF-8");
+//			 name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//			 code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			 } catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+		 // 小号绑定列表
+			String numberList=jo.getString("numberList");
+			JSONArray ja=JSONArray.fromObject(numberList); 
+			 User user  =null;
+			/*****   获取User    *****/
+			    if(code!=null){
+			      user = service.findUserByCode(code);
+			    }else{
+			    	user=service.findUserByName(name);
+			    }
+				user.setName(name);
+				user.setCode(code);
+				if(ja.size()!=0){
+			     JSONObject jo1=JSONObject.fromObject(ja.get(0));
+				 user.setTel(jo1.getString("master"));
+				}
+				user.setDuty(duty);
+				user.setType("S");
+				user.setIdcard(idcard);
+				if(dataP!=null&&dataP.equals("1"))
+					user.setDataPermission((short)1);
+				else
+					user.setDataPermission((short)0);	
+				if(frozen!=null&&frozen.equals("I"))
+					user.setStatus("I");
+				else
+					user.setStatus("V");	
+				user.setStatusDate(DateTime.getCurrentDateTime()); 
+				if(!orgId.equals(""))
+				user.setOrgId(Long.valueOf( orgId.substring(0,10)));
+				
+			    service.update(user);
+				JSONObject job= new JSONObject();
+			/*
+			 * 更新绑定关系，若上线，且绑定关系没有存在subs_rela里面   则进行绑定    
+			 */
+		    for(int i=0; i<ja.size();i++){
+				JSONObject json = (JSONObject) ja.get(i);
+				String channelVal = json.getString("channelVal");		
+				String anum = json.getString("master");
+				String xnum = json.getString("trumpet");
+			    String upline = json.getString("upline");		      
+//			    try {
+//			    	upline = new String(upline.getBytes("iso8859-1"),"UTF-8");
+//					 } catch (UnsupportedEncodingException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+				 Acms ac=service.getAcmsByacms(xnum);
+			     SubsRela sr= aService.findByXnumAndAnum(xnum, anum);
+			     if(ac!=null)
+			     {
+				     Integer acmsId = ac.getAcmsId();
+				     List<UserAcmsRela> uarList=uarService.findbyAcmsId(acmsId);
+				     UserAcmsRela uar = new UserAcmsRela() ;
+				     
+				     if(uarList!=null){
+				    	 uar=uarList.get(0);
+				     }
+						String operator = String.valueOf(AboutOperator.getOperatorId());
+								if(channelVal.equals("call")){
+									 uar.setPurpose("O");
+								 }else{
+									 uar.setChannelId(Integer.valueOf(channelVal));
+									 uar.setPurpose("C");
+								 }
+	     			   
+//	     			   if(upline.equals("true")){
+						    if(sr==null){
+						    	
+							    	 //进行ax绑定
+								   String res = AxOrder.axOrder(anum, xnum);
+								   JSONObject resjo=JSONObject.fromObject(res);
+								   SubsRela asr= new SubsRela();
+								     /*****    保存SubRelas    *****/
+								     if(resjo.getInt("result")==200)	     
+									 asr.setAnum(anum);
+									 asr.setXnum(xnum);	
+									 asr.setUserId(Integer.valueOf(user.getUserId().toString()));	 
+									 asr.setOperator(Integer.valueOf(String.valueOf(AboutOperator.getOperatorId())));
+								     asr.setSubId(resjo.getString("subid"));
+									 asr.setState("B");
+									 asr.setStateDate(DateTime.getCurrentDateTime());
+									 aService.save(asr);		
+									 ac.setState("U");
+									 ac.setStateDate(DateTime.getCurrentDateTime());
+									 ac.setStatus("V");
+									 ac.setStateDate(DateTime.getCurrentDateTime());
+									 numService.update(ac);	
+								     uar.setAcmsId(acmsId);
+						    	     uar.setUserId(Integer.valueOf(user.getUserId().toString()));
+							    	 uar.setOperatorId(operator);
+								     uar.setState("V");
+							         uar.setStateDate(DateTime.getCurrentDateTime());
+								     uarService.update(uar);
+						         }
+//	     			      }else{			    	
+//			                         uar.setOperatorId(operator);
+//								     uar.setState("I");
+//							         uar.setStateDate(DateTime.getCurrentDateTime());
+//								     uarService.update(uar);
+//								     if(sr!=null){
+//					        		 AxUnSubs.axUnsub(anum, xnum);
+//					        		 sr.setState("U");
+//					        		 sr.setStateDate(DateTime.getCurrentDateTime());
+//					        		 aService.update(sr);
+//					        		 uar.setState("I");
+//					        		 uar.setStateDate(DateTime.getCurrentDateTime());
+//					        		 uarService.update(uar);
+//								     }
+//					      
+//				         }
+			     }else{
+			    		job.put("message", "媒体小号【"+xnum+"】不存在");
+						job.put("type", "error");
+						setResult(job.toString());
+						return "success";
+					}
+		    }
+		    job.put("message", "修改成功");
+			job.put("type", "success");
+		    setResult(job.toString());
+               
+		return "success";
+		 
+	}
+	
+	
+	/**
+	 * 查询user列表
+	 * @return query
+	 */
+	public String queryList() {
+			ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+			
+			String jstr=request.getParameter("jsonData");
+             System.out.println(jstr);		
+			JSONObject jo = JSONObject.fromObject(jstr);
+		
+			String duty = jo.getString("duty");   //职务
+			String permission = jo.getString("power");//权限
+			String status = jo.getString("state"); // 状态
+			String channel = jo.getString("channel"); // 渠道
+			String name = jo.getString("Name"); // 名称或号码
+			String nameOrNum =jo.getString("nameOrNum");
+			String orgId =jo.getString("orgId"); 
+			String  currentPage1=jo.getString("currentPage"); 
+			if(currentPage1 != null && !currentPage1.equals("") ){
+					System.out.println(currentPage1);
+					currentPage=Integer.valueOf(currentPage1);
+			}
+			Map<String, String> param = new HashMap<String, String>();
+//				try {
+//			if(!browser){		
+//				duty = new String(duty.getBytes("iso8859-1"),"UTF-8");
+//				nameOrNum = new String(nameOrNum.getBytes("iso8859-1"),"UTF-8");
+//			}
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+			param.put("duty",duty.trim());
+			param.put("permission",permission);
+			param.put("status",status);
+			param.put("channel",channel);
+			param.put("name",name.trim());
+			param.put("nameOrNum",nameOrNum.trim());
+			if(orgId !=null&& !orgId.equals("")){
+				param.put("orgId",orgId.substring(0, 10));	
+				param.put("setId",orgId.substring(10, 15));
+			}else{
+				param.put("orgId","");	
+				param.put("setId",AboutOperator.getUser().getSetId());
+			}
+			
+			param.put("type",AboutOperator.getUser().getType());
+			pageListData = service.findList(param, currentPage,pageSize);
+			
+		     List staffList = pageListData.getDataList();
+		     JSONObject json = new JSONObject();
+		     JSONObject relas = new JSONObject();
+		     JSONArray records = new JSONArray();
+		     JSONObject pageviewjson = new JSONObject();
+		     pageviewjson.put("currentpage", pageListData.getCurrentPage());
+		     pageviewjson.put("totalrecord", pageListData.getTotalcount());
+		     pageviewjson.put("page_size", pageSize);
+		     JSONArray rlist=new JSONArray();
+		     for(int i=0;i<staffList.size();i++){
+		    	 
+		    	 Object[] o=(Object[]) staffList.get(i);
+		    	 json.put("name", o[0]);
+		    	 json.put("code", o[1]);
+		    	 json.put("userId", o[6]);
+		    	 User user=null;
+		    	
+		    	 if(o[1]!=null)
+		    		 user=service.findUserByCode((String)o[1]);
+		    	 else
+		    		 user=service.findUserByName((String)o[0]);
+		    	 List relaList=null;
+		    	 if(user!=null)
+		    	 relaList=service.getUserAcmsRela(user.getUserId(),channel);
+		    	//查出此员工的所有绑定关系
+		    	 if(relaList!=null)
+		    	 for(int j=0;j<relaList.size();j++){
+		    		 Object[] ro = (Object[]) relaList.get(j);
+		    		 SubsRela sr= (SubsRela) ro[3];
+		    		 UserAcmsRela uar= (UserAcmsRela) ro[1];
+		    		 String xnum = sr.getXnum();
+		    		 String anum=sr.getAnum();
+		    		 Integer channelId=uar.getChannelId();
+		    		 if(channelId!=null){
+		    		     Channel ch= service.findChannelById(uar.getChannelId());
+		    		     relas.put("channelName", ch.getId().getChannelName());
+		    		     relas.put("channelId", ch.getId().getChannelId());
+		    		 }else{
+		    			 relas.put("channelName", "外呼");
+		    			 relas.put("channelId", "call");
+		    		 }
+		    		 relas.put("xnum", xnum);
+		    		 relas.put("anum", anum);
+		    		 Acms ac = service.getAcmsByacms(xnum);
+		    		 String state = ac.getState();
+		    		 if(state.equals("D")){
+		    			 relas.put("upline", "下线"); 
+		    		 }else{
+		    			 relas.put("upline", "上线");
+		    		 }		
+		    		 rlist.add(relas);	
+		    	 }
+		    	 
+		    	if(relaList!=null&&relaList.size()==0)
+		    	json.put("subrelas", relaList);
+		    	else
+		        json.put("subrelas", rlist);
+		    	json.put("duty", o[2]);
+		    	json.put("status", o[3]); 	
+		    	json.put("org_name", o[4]);
+		    	json.put("data_permission", o[5]);
+		    	json.put("org_id", o[6]);
+		    	records.add(json);
+		    	if(i>=0){
+		    		
+		    		rlist.clear();
+	    		  }
+		     }     
+			//传值
+		     pageviewjson.put("records", records);
+		     result = pageviewjson.toString();
+		     System.out.println(result);
+		
+		return SUCCESS;
+	}
+	
+	@SuppressWarnings("rawtypes")
+//	public String test(){
+//        System.out.println("------------------------");
+//		@SuppressWarnings("unused")
+//		List relaList=service.getUserAcmsRela((long)1);	
+//		
+//		return SUCCESS;
+//	}
+	
+	//换绑
+	public String changeBinding(){
+        	
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+	 
+		String json=request.getParameter("jsonData");
+		System.out.println("换绑----------"+json.toString());
+		
+		JSONObject jos= JSONObject.fromObject(json.toString());
+		String code=jos.getString("code");
+	
+//		try {
+//			code = new String(code.getBytes("iso8859-1"),"UTF-8");
+//			System.out.println("name---------"+code);
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		String subrelas=jos.getString("subrelas");
+		User nuser=service.findUserByCode(code);
+		if(nuser==null){
+			JSONObject j=new JSONObject();
+			j.put("message", "该用户不存在");
+			j.put("type", "error");
+			result=j.toString();
+			return SUCCESS;
+		}
+		long userId = nuser.getUserId();
+	    JSONArray ja=JSONArray.fromObject(subrelas);
+	    
+	    for(int i=0;i<ja.size();i++)
+		 {
+			Object o =  ja.get(i);
+			JSONObject jo=JSONObject.fromObject(o);
+			String isChange=jo.getString("isChange");//是否要换绑
+			String acms=jo.getString("xnum");
+			String newprtms=jo.getString("anum");
+			if(isChange.equals("true"))
+				{
+					
+				  /*  Acms ac=service.getAcmsByacms(acms);
+					List<UserAcmsRela> uarList = uarService.findbyAcmsId(ac.getAcmsId());
+					UserAcmsRela uar = uarList.get(0);
+					uar.setUserId((int)userId);
+					uar.setStateDate(DateTime.getCurrentDateTime());
+					uarService.update(uar);		*/
+					List<Object> lo= service.findSubsRelaByXnum(acms);
+					Object[] obj=   (Object[]) lo.get(0);
+					SubsRela sr = (SubsRela) obj[0];
+					String oldprtms= sr.getAnum();
+					String subId= sr.getSubId();
+					String respCon=AxChangeNum.axChangeNum(subId, acms, oldprtms, newprtms);
+					JSONObject reJo=JSONObject.fromObject(respCon);
+					if(reJo.getInt("result")==200){
+						nuser.setTel(newprtms);
+						service.update(nuser);
+						sr.setSubId(subId);
+					    sr.setAnum(newprtms);
+			            sr.setUserId((int)userId);
+				        sr.setStateDate(DateTime.getCurrentDateTime());
+				        aService.update(sr);
+					}
+				}
+		 }
+ 
+		return SUCCESS;
+	}	
+	//解绑
+	 public String axUnSub(){
+	    	ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+			String code = request.getParameter("code");
+			unBind(code);
+			return SUCCESS;
+	    } 
+	 
+		//批量解绑
+	 public String batchAxUnSub(){
+	    	ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+			String userIdStr=request.getParameter("code");
+			String[] userIds = userIdStr.split(",");
+			
+			for(int i=0;i<userIds.length;i++)
+			{
+				User user=service.findById(Long.valueOf(userIds[i]));
+				unBind(user.getCode());
+			}
+		 
+			result="success";
+			return SUCCESS;
+	    } 
+	 
+	public String singleUnSub(){
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String json = request.getParameter("jsonData");
+		JSONObject jo=JSONObject.fromObject(json);
+		String code=jo.getString("code");
+		String acms=jo.getString("acms");
+		
+		List<Object> asrList=service.findSubsRelaByCodeAndAcms(code,acms);
+		String xnum ="";
+		 if(asrList!=null)
+		 {
+			 Object[] o = (Object[]) asrList.get(0);
+			 SubsRela asr=(SubsRela) o[0];
+			 UserAcmsRela uar=(UserAcmsRela) o[1];
+			 String anum = asr.getAnum();
+				     xnum = asr.getXnum();
+				System.out.println("single---"+anum+"------"+xnum);
+				AxUnSubs.axUnsub(anum ,xnum);
+				asr.setState("U");
+				asr.setStateDate(DateTime.getCurrentDateTime());
+				aService.update(asr);	
+				uar.setState("I");
+				uar.setStateDate(DateTime.getCurrentDateTime());
+				uarService.update(uar);
+		 }
+		    if(asrList==null){
+				Acms ac = service.getAcmsByacms(xnum);
+				ac.setStatus("I");
+				ac.setStatusDate(AboutOperator.getCurrentDate());
+				numService.update(ac);
+			}
+		return SUCCESS;
+	}
+	   private void unBind(String code){
+		   List<Object> asrList= service.findSubsRelaByUserId(code);
+			for(int i=0;i<asrList.size();i++){
+				
+			 Object[] o = (Object[]) asrList.get(i);
+			 SubsRela asr=(SubsRela) o[0];
+			 UserAcmsRela uar=(UserAcmsRela) o[1];
+			String anum = asr.getAnum();
+			String xnum = asr.getXnum();
+			System.out.println(anum+"------"+xnum);
+			AxUnSubs.axUnsub(anum ,xnum);	
+			asr.setState("U");
+			asr.setStateDate(DateTime.getCurrentDateTime());
+			aService.update(asr);	
+			Acms ac = service.getAcmsByacms(xnum);
+			ac.setStatus("I");
+			ac.setStatusDate(AboutOperator.getCurrentDate());
+			numService.update(ac);
+			uar.setState("I");
+			uar.setStateDate(DateTime.getCurrentDateTime());
+			uarService.update(uar);
+			}
+	   }
+	   //上线
+		public String online(){
+	        	
+			ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+			String userIds=request.getParameter("userId");
+			System.out.println("--------"+userIds);
+			JSONArray ja=JSONArray.fromObject(userIds);
+			
+			for(int i=0;i<ja.size();i++)
+			{
+			    User user=service.findById(Long.valueOf(ja.get(i).toString()));
+			    List<Object> asrList= service.findUnSubsRelaByUserId(user.getCode());
+			    System.out.println("asrList--------------"+asrList.size());
+               if(asrList!=null)
+               {
+			    for(int j=0;j<asrList.size();j++){
+			    	Object[] o = (Object[]) asrList.get(j);
+		    	    SubsRela asr=(SubsRela) o[0];
+					String anum = asr.getAnum();
+					String xnum = asr.getXnum();
+					String res = AxOrder.axOrder(anum, xnum);
+					JSONObject jo=JSONObject.fromObject(res);
+					
+					if(jo.getInt("result")==200)
+						asr.setState("B");
+						asr.setSubId(jo.getString("subid"));
+						asr.setStateDate(DateTime.getCurrentDateTime());
+						aService.update(asr);
+					Acms ac = service.getAcmsByacms(xnum);
+					ac.setState("U");
+					ac.setStateDate(DateTime.getCurrentDateTime());
+					numService.update(ac);
+			    }	
+               } 
+			}	
+			return SUCCESS;
+		}	
+		  //下线
+			public String offline(){
+			        	
+					ActionContext ct = ActionContext.getContext();
+					HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+					String userIds=request.getParameter("userId");
+					JSONArray ja=JSONArray.fromObject(userIds);			
+					for(int i=0;i<ja.size();i++)
+					{
+					    User user=service.findById(Long.valueOf(ja.get(i).toString()));
+					    List<Object> asrList= service.findSubsRelaByUserId(user.getCode());
+		               if(asrList!=null)
+		               {
+					      for(int j=0;j<asrList.size();j++){
+					    	  Object[] o = (Object[]) asrList.get(j);
+					    	    SubsRela asr=(SubsRela) o[0];
+								String anum = asr.getAnum();
+								String xnum = asr.getXnum();
+								System.out.println(anum+"------"+xnum);
+								AxUnSubs.axUnsub(anum ,xnum);	
+								asr.setState("U");
+								asr.setStateDate(DateTime.getCurrentDateTime());
+								aService.update(asr);	
+								Acms ac = service.getAcmsByacms(xnum);
+								ac.setState("D");
+								ac.setStateDate(DateTime.getCurrentDateTime());
+								numService.update(ac);
+					        }	
+		               }else{
+		            	   result="";
+		               }
+					}	
+					return SUCCESS;
+				}	
+	 public String resetPassword(){
+			ActionContext ct = ActionContext.getContext();
+			HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		    String code=request.getParameter("code");
+			User user=service.findUserByCode(code);
+			String m=String.valueOf(Math.random());
+			
+			String math=m.substring(5,11);
+			String str = SecurityHelper.DESEncrypt(math, OVLoadProperties.getInstance().getProperties("userMD5Key"));
+			user.setPassword(str);
+			result=math;
+			service.update(user);
+		 return SUCCESS;
+	 }
+//	/**
+//	 * @return the ChannelList
+//	 */
+//	public String getChannelList() {
+//		long operator = AboutOperator.getOperatorId();
+//		String channelList = service.getChannelList(operator);
+//		setResult(channelList);
+//		return "success";
+//	}
+	/**
+	 * @return the dutyList
+	 */
+	public String getDutyList() {
+		Long operator = AboutOperator.getOperatorId();
+		String dutylList = service.getDutyList(operator);
+		setResult(dutylList);
+		return "success";
+	}
+	/**
+	 * 导入excel文件
+	 */
+	@SuppressWarnings("unused") 
+	public String importExcel(){
+		String resultCode="";
+		HttpServletRequest request=ServletActionContext.getRequest();
+		String excelFilename= staffFile.getName();
+		System.out.println("-------------"+excelFilename);
+		excelFilename = "staffList.xls";
+		String directory = "/upload";
+		String targetDirectory = ServletActionContext.getServletContext().getRealPath(directory); 
+		
+		try {
+			    resultCode=service.importExcel( targetDirectory,excelFilename,staffFile);
+			
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+		    result="{\"result\":\"failed\", \"cause\":\"导入出现异常！\"}";
+		}
+	   
+//	    if(!resultCode.equals("")){
+//			
+//			String flag = resultCode;
+//			if(flag.equals("1")){
+//				result="{\"result\":\"failed\", \"cause\":\"小号已被分配\"}";	
+//			}else{
+//				result="{\"result\":\"failed\", \"cause\":\"小号不存在\"}";
+//			}
+//		}else{
+			 result="{\"result\":\"success\", \"cause\":\"\"}";
+//		}
+	    System.out.println("import  staff------"+result.toString());
+		return "success";
+	}
+	/**
+	 * 导出excel文件
+	 */
+
+	@SuppressWarnings("unchecked")
+	public String exportExcel(){
+   	 	User su = (User) ActionContext.getContext().getSession().get("user");
+   	 	if(su == null){
+		    result="{\"result\":\"failed\", \"filepath\":\"\",\"cause\":\"导出失败，请重新登录！\"}";
+   			return "success";
+   	 	}
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jsonData = request.getParameter("jsonData");
+		try {
+			JSONObject jsonObj = JSONObject.fromObject(jsonData);
+			//String org=request.getParameter("org");
+			String orgId=jsonObj.getString("orgId");
+			String duty=jsonObj.getString("duty");
+			String state=jsonObj.getString("state");
+			String channel=jsonObj.getString("channel");
+			String name=jsonObj.getString("Name");
+			String nameOrNum=jsonObj.getString("nameOrNum");
+			String power=jsonObj.getString("power");
+
+			Map<String, String> param = new HashMap<String, String>();
+			param.put("duty", duty);
+			param.put("permission",power);
+			param.put("status",state);
+			param.put("channel",channel);
+			param.put("name",name);
+			param.put("nameOrNum",nameOrNum);
+			String setId="";
+			if(orgId !=null&& !orgId.equals("")){
+				param.put("orgId",orgId.substring(0, 10));
+			    param.put("setId",orgId.substring(10, 15));
+			    setId=orgId.substring(10, 15);
+			}else{
+				param.put("orgId","");	
+				param.put("setId",AboutOperator.getUser().getSetId());
+				setId=AboutOperator.getUser().getSetId();
+			}
+			param.put("type",su.getType());
+			currentPage = 1;
+			List<User> staffList = null;
+			long count = service.getListTotalcount(param, currentPage, pageSize);
+		    
+		    if(count > 15000){
+		    	result="{\"result\":\"failed\", \"filepath\":\"\",\"cause\":\"导出数据量大于15000,请选择查询条件!\"}";
+		    	return "success";
+		    }
+		    int totalPageCount = 2;
+		    staffList = new ArrayList<User>();
+			while(currentPage <= totalPageCount){
+				pageListData = service.findList(param, currentPage++, 7500);
+				if(pageListData.getDataList().size() == 0){
+					break;
+				}
+				totalPageCount = pageListData.getTotalPageCount();
+				staffList.addAll(pageListData.getDataList());
+			}
+			
+	        String code=AboutOperator.getUser().getUserId().toString() + "_" + AboutOperator.getUser().getCode();
+			String directory = "/downfile";
+			String targetDirectory = ServletActionContext.getServletContext().getRealPath(directory);
+		    String fileName = service.exportExcel(staffList,targetDirectory,code,setId);
+		    if(fileName == null){
+			    result="{\"result\":\"failed\", \"filepath\":\"\",\"cause\":\"导出失败！\"}";
+		    }else{
+		    	String url = request.getContextPath();
+			    result="{\"result\":\"success\", \"filepath\":\"" + url + directory + "/" + fileName + "\",\"cause\":\"\"}";
+		    }
+		    staffList = null;
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+		    result="{\"result\":\"failed\", \"filepath\":\"\",\"cause\":\"导出失败！\"}";
+		}
+		return "success";
+	}
+	public StaffService getService() {
+		return service;
+	}
+	public void setService(StaffService service) {
+		this.service = service;
+	}
+
+	
+	public UserAcmsRelaService getUarService() {
+		return uarService;
+	}
+
+	public void setUarService(UserAcmsRelaService uarService) {
+		this.uarService = uarService;
+	}
+	public String getResult() {
+		return result;
+	}
+
+	public void setResult(String result) {
+		this.result = result;
+	}
+	public File getStaffFile() {
+		return staffFile;
+	}
+	public void setStaffFile(File staffFile) {
+		this.staffFile = staffFile;
+	}
+	public NumberService getNumService() {
+		return numService;
+	}
+	public void setNumService(NumberService numService) {
+		this.numService = numService;
+	}
+	public TransferNumberService getTfService() {
+		return tfService;
+	}
+	public void setTfService(TransferNumberService tfService) {
+		this.tfService = tfService;
+	}
+	public AxbService getaService() {
+		return aService;
+	}
+	public void setaService(AxbService aService) {
+		this.aService = aService;
+	}
+
+	
+}

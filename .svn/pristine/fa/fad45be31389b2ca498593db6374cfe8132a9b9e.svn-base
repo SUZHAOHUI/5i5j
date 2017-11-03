@@ -1,0 +1,33 @@
+
+package com.oio.wawj.dao;
+
+
+
+import java.util.List;
+import java.util.Map;
+
+import com.oio.wawj.bean.RoleFunctions;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.bean.UserRole;
+import com.oio.wawj.util.PageListData;
+
+
+
+public interface UserDAO extends BaseDAO<User,Long>{
+
+	public void deleteUserById(short id);
+
+	public Integer getFindId(short id);
+	public PageListData getfindAll(Map param,final String hql,final String hql1,final int currentPage,final int pageSize);
+	public PageListData getList(final String hql,final String hql1,final Map param,final int pageNum,final int pageSize);
+
+	public String getfindUserAll(Short id);
+	//public String getfindRoleAll();
+	public Object getObjectById(String id);
+	public User checkLogin(User user);
+	
+	public User getUserIdByRoleId(final Short id);
+	
+	public List<UserRole> findByUserId(Long userId);
+	public String getChildOrgList(Long orgId);
+}

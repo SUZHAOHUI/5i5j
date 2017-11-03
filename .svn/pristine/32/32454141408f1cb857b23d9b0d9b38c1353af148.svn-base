@@ -1,0 +1,307 @@
+package com.oio.wawj.struts.action;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.struts2.ServletActionContext;
+
+
+import com.oio.wawj.bean.ChannelId;
+import com.oio.wawj.bean.Parameter;
+import com.oio.wawj.bean.Ringtone;
+import com.oio.wawj.service.ParameterService;
+import com.oio.wawj.service.RingtoneService;
+import com.oio.wawj.util.AboutOperator;
+import com.opensymphony.xwork2.ActionContext;
+
+public class RingtoneAction extends BaseAction{
+
+	
+	private Ringtone ringtone ;
+	
+	private RingtoneService ringtoneService;
+	
+	private ParameterService parameterService;
+	
+	private short id;
+	private String code;
+	private String name;
+	private String savepath;
+	private String state;
+	private Date stateDate;
+	private Integer operator;
+	private String plist;
+	private String result;
+	
+	private String custName;
+	private String fileFileName;
+    private File bgm;
+    private String clName;
+
+    
+
+
+	public String getClName() {
+		return clName;
+	}
+
+
+	public void setClName(String clName) {
+		this.clName = clName;
+	}
+
+
+	public String getfileFileName() {
+		return fileFileName;
+	}
+
+
+	public void setfileFileName(String fileFileName) {
+		this.fileFileName = fileFileName;
+	}
+
+
+	public File getBgm() {
+		return bgm;
+	}
+
+
+	public void setBgm(File bgm) {
+		this.bgm = bgm;
+	}
+
+
+	/**系统管理-彩铃管理查看
+	 * 
+	 */
+	public String getfindRingtone() {
+		plist = ringtoneService.findRingtone();
+		result = plist;
+		return "success";
+	}
+	
+	
+	/**
+	 * 上传彩铃
+	 */
+
+	public void uploadRingtone(){
+		 ActionContext ct = ActionContext.getContext();
+		 HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		 
+		 System.out.println("-----------"+clName);
+		// String name= file.getName();
+        
+         System.out.println(bgm.getName()+"------------------");
+	     saveFile(name,bgm,clName); 
+
+	}
+	
+	
+	/**系统管理-彩信管理提交/上传
+	 * 
+	 */
+	public String saveFile(String name,File file,String clName) {
+
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+
+        String loadPath = null;
+        String directory = "/mp3";
+		String targetDirectory = ServletActionContext.getServletContext().getRealPath(directory); 
+		System.out.println(targetDirectory);
+	
+		String na = String.valueOf(Math.random()).substring(16);
+		
+		String str = targetDirectory+"/"+na+".mp3";
+		
+		Ringtone r = new Ringtone();
+
+		
+		
+		String str2= request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath()+"/mp3/"+na+".mp3";		
+
+		
+		r.setSavepath(str2);	
+		r.setName(clName);
+		r.setCode(clName);
+		r.setState("V");
+		r.setStateDate(AboutOperator.getCurrentDate());
+		r.setOperator(Integer.parseInt(String.valueOf(AboutOperator.getOperatorId())));
+		
+		ringtoneService.save(r);
+		
+		
+/*		Parameter p1 = parameterService.findByParameter(id);
+		p1.setValue(str2);
+	    parameterService.update(p1);*/
+		 
+		//ringtoneService.update(r);
+		
+		System.out.print("---------------2"+str2);
+        System.out.print("---------------"+str);
+
+        
+        File target = new File(str);
+
+        if (target.exists()) {
+            target.delete();
+        }
+        file.renameTo(target);
+        loadPath = targetDirectory;
+        return loadPath;
+		
+	}
+	
+	
+  /**
+   * 下载彩铃
+   * @return
+   */
+
+	public String getfindRingtoneUrl() {
+		
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+        
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		
+		  
+		
+          String  duration=jo.getString("duration"); 
+          short Id=Short.valueOf(jo.getString("Id")); 
+		
+		plist = ringtoneService.findRingtoneUrl(Id);
+		result = plist;
+		return "success";
+	}
+	
+	
+
+
+	
+
+	public short getId() {
+		return id;
+	}
+	public void setId(short id) {
+		this.id = id;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getSavepath() {
+		return savepath;
+	}
+	public void setSavepath(String savepath) {
+		this.savepath = savepath;
+	}
+	public String getState() {
+		return state;
+	}
+	public void setState(String state) {
+		this.state = state;
+	}
+	public Date getStateDate() {
+		return stateDate;
+	}
+	public void setStateDate(Date stateDate) {
+		this.stateDate = stateDate;
+	}
+	public Integer getOperator() {
+		return operator;
+	}
+	public void setOperator(Integer operator) {
+		this.operator = operator;
+	}
+	public String getPlist() {
+		return plist;
+	}
+	public void setPlist(String plist) {
+		this.plist = plist;
+	}
+	public String getResult() {
+		return result;
+	}
+	public void setResult(String result) {
+		this.result = result;
+	}
+
+
+
+
+
+	public Ringtone getRingtone() {
+		return ringtone;
+	}
+
+
+
+
+
+	public void setRingtone(Ringtone ringtone) {
+		this.ringtone = ringtone;
+	}
+
+
+
+
+
+	public RingtoneService getRingtoneService() {
+		return ringtoneService;
+	}
+
+
+
+
+
+	public void setRingtoneService(RingtoneService ringtoneService) {
+		this.ringtoneService = ringtoneService;
+	}
+
+
+
+
+	public String getCustName() {
+		return custName;
+	}
+
+
+	public void setCustName(String custName) {
+		this.custName = custName;
+	}
+
+
+	public ParameterService getParameterService() {
+		return parameterService;
+	}
+
+
+	public void setParameterService(ParameterService parameterService) {
+		this.parameterService = parameterService;
+	}
+	
+	
+	
+	
+}

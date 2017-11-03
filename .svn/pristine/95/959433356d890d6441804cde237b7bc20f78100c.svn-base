@@ -1,0 +1,217 @@
+package com.oio.wawj.dao.impl;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.springframework.orm.hibernate3.HibernateCallback;
+
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.ChannelId;
+import com.oio.wawj.bean.Ringtone;
+import com.oio.wawj.bean.Template;
+import com.oio.wawj.dao.RingtoneDAO;
+import com.oio.wawj.util.PageListData;
+
+public class RingtoneDAOImpl extends BaseDAOImpl<Ringtone,Short> implements RingtoneDAO{
+
+	public String getfindRingtone(){
+		return  ( String) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+						 JSONObject jsonObject = new JSONObject();
+						 JSONArray jsonArray = new JSONArray(); 
+						String hql = "from  Ringtone where 1=1  ";
+						
+						Query query = s.createQuery(hql);
+						List list = query.list();
+						
+						for(int i = 0; i < list.size(); i++){
+							Ringtone sf = (Ringtone)list.get(i);	
+							jsonObject.put("id",sf.getId());
+							jsonObject.put("name",sf.getName());			
+							jsonObject.put("status",sf.getState());	
+							jsonObject.put("url",sf.getSavepath());	
+							jsonArray.add(jsonObject);
+						}
+						return jsonArray.toString(); 
+					}
+				});
+		
+	}
+	
+	public String getfindRingtoneUrl(final short Id){
+		return  ( String) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+						 JSONObject jsonObject = new JSONObject();
+						 JSONArray jsonArray = new JSONArray(); 
+						String hql = "from  Ringtone where  id ="+Id;
+						
+						Query query = s.createQuery(hql);
+						List list = query.list();
+						
+						for(int i = 0; i < list.size(); i++){
+							Ringtone sf = (Ringtone)list.get(i);	
+
+							jsonObject.put("url",sf.getSavepath());	
+							jsonArray.add(jsonObject);
+						}
+						return jsonArray.toString(); 
+					}
+				});
+		
+	}
+	
+	/**
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public Ringtone getFindId(final short id) {
+		return  (Ringtone) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+//						Long idd = Long.parseLong(id);
+						 JSONObject jsonObject = new JSONObject();
+						 JSONArray jsonArray = new JSONArray(); 
+						String hql = "from Ringtone r " +
+										"where  r.id = "+id;		
+						System.out.println(hql);
+						Query query = s.createQuery(hql);
+						List list = query.list();
+						
+						for(int i = 0; i < list.size(); i++){
+							Ringtone sf = (Ringtone)list.get(i);	
+							jsonObject.put("id",sf.getId());
+							jsonObject.put("name",sf.getName());			
+							jsonObject.put("status",sf.getState());	
+							jsonObject.put("url",sf.getSavepath());	
+							jsonArray.add(jsonObject);
+						}
+						return jsonArray.toString(); 
+
+					}
+				});
+	}
+	
+	
+	
+	/*@SuppressWarnings({ "rawtypes", "unchecked" })
+	public PageListData getList(final String hql,final String hql1){
+		try {
+			return (PageListData) getHibernateTemplate().execute(
+					new HibernateCallback() {
+						public Object doInHibernate(Session s) 
+							throws HibernateException, SQLException {
+							PageListData listdata = null;
+														
+							
+							String chql=" where p.section_id = 1 and p.item_id > 4 and p.item_id < 8 ";
+							
+							SQLQuery query = getSession().createSQLQuery(hql+hql1+chql) ;
+							query.addScalar("pId",Hibernate.INTEGER )
+							     .addScalar("sectionId", Hibernate.SHORT)
+							     .addScalar("section", Hibernate.STRING)
+							     .addScalar("itemId", Hibernate.SHORT)
+							     .addScalar("item", Hibernate.STRING)
+							     .addScalar("value", Hibernate.INTEGER)
+							     .addScalar("rId", Hibernate.SHORT)
+							     .addScalar("rname", Hibernate.STRING)
+							     .addScalar("savepath", Hibernate.STRING);
+
+							List data = query.list();
+							listdata = new PageListData(1000, 1000, 1, data);
+							try{
+								listdata = new PageListData(1000, 1000, 1, data);
+							}catch(Exception e){
+								e.printStackTrace();
+							}
+							return listdata;
+						}
+					});
+					
+		} catch (RuntimeException re) {
+			logger.error(re.toString());
+			throw re;
+		}
+		
+	}*/
+	
+	
+	
+	public String getList(){
+		return  ( String) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session s)
+							throws HibernateException, SQLException {
+						 JSONObject jsonObject = new JSONObject();
+						 JSONObject jsonObject1 = new JSONObject();
+						 JSONObject jsonObject2 = new JSONObject();
+						 JSONArray jsonArray = new JSONArray(); 
+						 JSONArray jsonArray1 = new JSONArray(); 
+						 
+						 
+						   String sql = " select p.parameterId as pId, p.item as item, r.id as rid, " +
+								        " r.name as rname, r.savepath as savepath";
+						   String sql1=	" from Parameter as p ,Ringtone as r where p.value = r.id "; 
+						 
+						   String chql=" and p.sectionId = 1 and p.itemId > 4 and p.itemId < 8 ";
+						System.out.println("    ");
+						System.out.println(sql+sql1+chql);
+
+						Query query = s.createQuery(sql+sql1+chql);
+						List list = query.list();
+						
+						for(int i = 0; i < list.size(); i++){
+							Object [] sf =  (Object[]) list.get(i);	
+							jsonObject.put("pId",sf[0]);
+							jsonObject.put("item",sf[1]);			
+							jsonObject.put("rid",sf[2]);	
+							jsonObject.put("rname",sf[3]);	
+							jsonObject.put("savepath",sf[4]);	
+							jsonArray.add(jsonObject);
+						}
+						
+						
+						
+						   
+						  String s1=" select c.id.channelId as channeId,c.id.channelName as channelName,r.id as rid,r.name as rname,r.savepath as savepath " +
+						  		    " from Channel as c, Ringtone as r where c.ringId=r.id and c.state='V' ";
+							System.out.println("    ");
+							System.out.println(s1);
+						  
+						  Query query1 = s.createQuery(s1);
+							List list1 = query1.list();
+							
+							for(int i = 0; i < list1.size(); i++){
+								Object [] sf1 =  (Object[]) list1.get(i);	
+								jsonObject1.put("channeId",sf1[0]);
+								jsonObject1.put("channelName",sf1[1]);			
+								jsonObject1.put("rid",sf1[2]);	
+								jsonObject1.put("rname",sf1[3]);	
+								jsonObject1.put("savepath",sf1[4]);	
+								jsonArray1.add(jsonObject1);
+							}
+						
+							jsonObject2.put("parameterRing", jsonArray);
+							jsonObject2.put("channelRing", jsonArray1);
+							
+						return jsonObject2.toString(); 
+					}
+				});
+		
+	}
+
+	
+}

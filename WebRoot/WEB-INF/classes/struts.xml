@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+    <constant name="struts.enable.DynamicMethodInvocation" value="true" />  
+    <constant name="struts.devMode" value="false" />  
+    <!-- 所允许上传文件的总大小 -->  
+    <constant name="struts.multipart.maxSize" value="6291456"/>  
+    
+	<constant name="struts.configuration.xml.reload" value="true"/>
+	<package name="5i5j" namespace="/" extends="struts-default,json-default,jasperreports-default">
+		
+		<!-- 配置自定义拦截器LoginedCheckInterceptor -->
+		<interceptors>
+			<interceptor name="loginedCheck"
+				class="com.oio.wawj.struts.interceptor.LoginedCheckInterceptor" />
+			<interceptor-stack name="mystack">
+				<interceptor-ref name="loginedCheck" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+ 		<!-- 配置默认的拦截器 -->
+        <default-interceptor-ref name="mystack" />
+        <default-action-ref name="notFound"></default-action-ref>
+		<!-- 定义全局result -->
+		<global-results>
+			<!-- 定义名为exception的全局result -->
+			<result name="exception">exception.jsp</result>
+			<result name="tologin">index.html</result>
+		</global-results>
+
+		<!-- 定义全局异常映射 -->
+		<global-exception-mappings>
+			<!-- 捕捉到Exception异常(所有异常)时跳转到exception所命名的视图上 -->
+			<exception-mapping exception="java.lang.Exception"
+				result="exception" />
+		</global-exception-mappings>
+
+        <action name="notFound" class="notFoundErrerAction"  >
+           <result name="success" >index.html</result>
+        </action>
+        <action name="overview" class="notFoundErrerAction"  >
+           <result name="success" >index.html</result>
+        </action>
+<!-- Customer Start --> 
+		<action name="customer_*" class="customerAction" method="{1}">
+<!-- 			<result name="create">jsp/customer/createcustomer/customerCreate.jsp</result> -->
+<!-- 	        <result name="membercreate">jsp/customer/createmember/memberCreate.jsp</result> -->
+<!-- 			<result name="update">jsp/customer/customermanage/customerManage.jsp</result> -->
+<!-- 			<result name="query">jsp/customer/customermanage/customerManage.jsp</result> -->
+<!-- 			<result name="init">jsp/customer/createmember/memberCreate.jsp</result> -->
+          
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" /> 
+		</action>
+	
+<!-- Customer End --> 
+<!-- Member Start --> 
+		<action name="member_*" class="memberAction" method="{1}">
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" /> 
+		</action>
+		
+<!-- Member End --> 
+	<!-- Staff Start --> 
+		<action name="staff_*" class="staffAction" method="{1}">
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />  
+		</action>
+		
+<!-- Staff End --> 	
+	<!-- Staff Start --> 
+		<action name="axb_*" class="axbAction" method="{1}">
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />  
+		</action>
+		
+	<!-- Staff End --> 
+	<!-- Ax Start --> 
+		<action name="ax_*" class="axAction" method="{1}">
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />  
+		</action>
+		
+	<!-- Ax End --> 
+	<!-- Admin Start -->		
+
+			<action name="sysUser_*" class="sysUserAction" method="{1}">
+
+			<result name="input">login.jsp</result>
+<!-- 			<result name="add">jsp/admin/user/userManagement.jsp</result> -->
+<!-- 			<result name="update">jsp/admin/user/userManagement.jsp</result> -->
+<!-- 			<result name="query">jsp/admin/user/userManagement.jsp</result> -->
+			<result name="top">main.jsp</result> 
+			<result name="left">main.jsp</result> 
+		    <result name="logOut" type="redirect">http://sso.bacic5i5j.com/login?service=http%3A%2F%2F192.168.3.253%3A8080%2F5i5j%2F</result> 
+		    <result name="loginSuccess" type="redirect">main.jsp</result> 
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result>         
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="sysFunction_*" class="sysFunctionAction" method="{1}">
+            
+            <result name="add">main.jsp</result>  
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+ 		<action name="sysRoleFunction_*" class="sysRoleFunctionAction" method="{1}">
+             
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<action name="sysRole_*" class="sysRoleAction" method="{1}">
+
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="account_*" class="accountAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<action name="rechargeModle_*" class="rechargeModleAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<action name="callRecords_*" class="callRecordsAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+			<action name="queryOrder_*" class="queryOrderAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="recharge_*" class="rechargeAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<action name="payment_*" class="paymentAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+	<!-- operationLog Start --> 
+			<action name="operationLog_*" class="operationLogAction" method="{1}">
+				<result type="json"> 
+	                <param name="root">result</param> 
+	            </result> 
+				<interceptor-ref name="mystack" /> 
+			</action>
+			
+	<!-- operationLog End --> 
+		
+ 
+	   <action name="signature_*" class="signatureAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack"/>
+		</action>		
+		<action name="org_*" class="orgAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		
+		
+		<action name="number_*" class="numberAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<!-- overview Start --> 
+		<action name="overview_*" class="overviewAction" method="{1}">
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" /> 
+		</action>
+		
+      <!-- overview End --> 
+		<action name="secretNo_*" class="secretNoAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<action name="sysUserRole_*" class="sysUserRoleAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+	   <action name="register_*" class="registerAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result name="register">register.jsp</result>
+			<result name="login">login.jsp</result>
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		   <action name="resetPassword_*" class="resetPasswordAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result name="findPwd">tpl/userinfo/toFindPwd.jsp</result>
+			<result name="code">tpl/userinfo/SMSCode.jsp</result>
+			<result name="email">tpl/userinfo/PromptEmail.jsp</result>
+			<result name="resetPwd">tpl/userinfo/resetPassword.jsp</result>
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+				<!-- PricePlanConfig Start --> 
+		<action name="pricePlanConfig_*" class="pricePlanConfigAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+					<!-- CustPricePlanConfig Start --> 
+		<action name="custPricePlanConfig_*" class="custPricePlanConfigAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+							<!-- memPricePlanConfigAction Start --> 
+		<action name="memPricePlanConfig_*" class="memPricePlanConfigAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+						<!-- Property Start --> 
+		<action name="property_*" class="propertyAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+								<!-- sysAttr Start --> 
+		<action name="sysAttr_*" class="sysAttrAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+										<!-- sysAttrValue Start --> 
+		<action name="sysAttrValue_*" class="sysAttrValueAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		<!-- Service Start --> 
+		<action name="service_*" class="serviceAction" method="{1}">
+			
+			<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+	   <action name="operationLog_*" class="operationLogAction" method="{1}">
+					<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+			   <action name="bill_*" class="billAction" method="{1}">
+					<result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+				<!-- cdr -->
+		<action name="cdr_*" class="cdrAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result>      
+		  <interceptor-ref name="mystack" />
+		</action>
+		
+	    <action name="ussdStatistics_*" class="ussdStatisticsAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		   <action name="secretNoStatistics_*" class="secretNoStatisticsAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		 <action name="callAnalysis_*" class="callAnalysisAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		   <action name="querySecretNo_*" class="querySecretNoAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result name="test">jsp/test.jsp</result>
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		   <action name="smsStatistics_*" class="smsStatisticsAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		     <action name="infoManagement_*" class="infoManagementAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		 <action name="imxiuTemplate_*" class="imxiuTemplateAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		   <action name="auth_*" class="authAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		  </action>
+		<!-- watch hibernate -->
+		<action name="hstat" class="hibernateStatisticAction">
+			<result name="success">hstat.jsp</result>
+		</action>
+		<action name="hstat_*" class="hibernateStatisticAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+		</action>
+		
+		<action name="channel_*" class="channelAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+    
+      	<action name="parameter_*" class="parameterAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+		
+		 <action name="template_*" class="templateAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		 <action name="ringtone_*" class="ringtoneAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+			<result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="callInAnalyze_*" class="callInAnalyzeAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+		<action name="notifyRecord_*" class="notifyRecordAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="role_*" class="roleAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+		
+		<action name="userRole_*" class="userRoleAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+		<action name="function_*" class="functionAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+			
+		<action name="roleFunction_*" class="roleFunctionAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+
+		<action name="customerAction_*" class="customerAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+	 <action name="collection_*" class="collectionAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+			<action name="department_*" class="departmentAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+			<action name="emp_*" class="empAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+	    <action name="erp_*" class="erpAction" method="{1}">
+			<!-- 返回json类型数据 --> 
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法 --></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+         	<action name="subsRelaTransfer_*" class="subsRelaTransferAction" method="{1}">
+<!-- 			返回json类型数据  -->
+            <result type="json"> 
+                <param name="root">result<!-- result是action中设置的变量名，也是页面需要返回的数据，该变量必须有setter和getter方法--></param> 
+            </result> 
+			<interceptor-ref name="mystack" />
+		</action>
+<!-- 		<action name="monitor" class="monitorSystemAction">
+			<result name="success">jsp/admin/monitor/monitor.jsp</result>
+		</action>
+		<action name="monitor_*" class="monitorSystemAction" method="{1}">
+			返回json类型数据 
+            <result type="json"> 
+                <param name="root">result</param> 
+            </result> 
+		</action> -->
+		<!-- end watch -->
+
+	</package>
+</struts>

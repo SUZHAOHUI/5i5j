@@ -1,0 +1,26 @@
+common.title=\u5BA2\u6237\u5173\u7CFB\u7BA1\u7406\u7CFB\u7EDF
+common.login=\u767B\u5F55
+jsp.user.code=\u8D26\u53F7
+jsp.user.password=\u5BC6\u7801
+common.sys.version=V1.0.0
+common.login.fail=\u767B\u5F55\u5931\u8D25
+common.alt.input=\u8BF7\u8F93\u5165...
+common.alt.input_param=\u8BF7\u8F93\u5165{0}
+common.alt.page.first=\u9996\u9875
+common.alt.page.go=\u8DF3\u8F6C
+common.alt.page.last=\u5C3E\u9875
+common.alt.page.next=\u4E0B\u4E00\u9875
+common.alt.page.prev=\u4E0A\u4E00\u9875
+common.alt.select=\u8BF7\u9009\u62E9...
+common.alt.select_param=\u8BF7\u9009\u62E9{0}
+common.page.str=\u5171\uFF1A{0}\u884C\uFF0C\u6BCF\u9875{1}\u884C\uFF0C\u5171{2}\u9875\u3002 \u7B2C{3}\u9875\u3002
+common.register=\u6CE8\u518C
+exception_prompt=\u9519\u8BEF\u4FE1\u606F\:
+exception_title=\u9519\u8BEF\u63D0\u793A\u9875
+jsp.common.page.page=\u9875
+jsp.common.page.pagebig=\u9875
+jsp.common.page.row=\u884C
+jsp.common.page.rowbig=\u884C
+jsp.common.page.total=\u5171
+operatelog.user.login.success=\u767B\u5F55\u6210\u529F
+

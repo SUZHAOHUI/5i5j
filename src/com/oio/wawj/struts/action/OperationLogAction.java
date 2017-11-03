@@ -1,0 +1,177 @@
+package com.oio.wawj.struts.action;
+
+
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import net.sf.json.JSONObject;
+
+import org.apache.struts2.ServletActionContext;
+
+
+import com.oio.wawj.bean.OperationLog;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.service.OperationLogService;
+import com.oio.wawj.service.OverviewService;
+import com.opensymphony.xwork2.ActionContext;
+
+
+
+/**
+ * 
+ * 
+
+ */
+public class OperationLogAction extends BaseAction {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private OperationLogService service;
+	private OverviewService overviewService;
+	private String userName = "";
+	private Date beginDate = null;
+	private Date endDate = null;
+	private String functionName = "";
+	private String result;
+	
+
+	
+	
+	public String query() {
+	
+		Map<String, String> userParam = new HashMap<String, String>();
+		Map<String, String> timeParam = new HashMap<String, String>();
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+        String jstr = request.getParameter("jsonData");
+		User user = (User)ServletActionContext.getRequest().getSession().getAttribute("user");
+	    JSONObject jo = JSONObject.fromObject(jstr);
+			String name=jo.getString("name");
+			String duty=jo.getString("duty");
+			String orgId=jo.getString("orgId");
+			String  dateVal=jo.getString("dateVal");
+			 String  currentPage1=jo.getString("currentPage"); 
+			if( dateVal != null && !dateVal.equals("") ){
+				String beginTime=dateVal.substring(0, 19);
+				String endTime= dateVal.substring(22);
+				timeParam.put("beginTime", beginTime);		
+				timeParam.put("endTime", endTime );	
+			}		
+		if(name != null&&!"".equals(name)){
+//			try {
+//				name = new String(name.getBytes("iso8859-1"),"UTF-8");
+//				duty = new String(duty.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			userParam.put("name", name );
+			}
+		
+		if(duty !=null&& !duty.equals("")){
+			userParam.put("duty",duty);
+	    }
+			
+			if(orgId !=null&& !orgId.equals("")){
+				userParam.put("orgId",orgId.substring(0, 10));
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			System.out.println(currentPage1);
+			currentPage=Integer.valueOf(currentPage1);
+		}
+        long operatorId = user.getUserId();
+		String roleName=overviewService.findRoleNameByUserId(operatorId);
+		pageListData = service.findList(userParam, timeParam, currentPage, 10,roleName);
+		
+		JSONObject pageviewjson = pageListData.parseJSON("User,1,code,code","User,1,name,name","User,1,duty,duty",
+				"Org,2,orgName,orgName",
+				"OperationLog,0,statement,statement", "OperationLog,0,createTime,createTime", "OperationLog,0,comments,comments"
+				);
+		result=pageviewjson.toString();
+		System.out.println(result);
+		return "success";
+	}
+	
+	/**
+	 * get����
+	 * @return service
+	 */
+	public OperationLogService getService() {
+		return service;
+	}
+
+	/**
+	 * set����
+	 */
+	public void setService(OperationLogService service) {
+		this.service = service;
+	}
+	
+
+	
+	public OverviewService getOverviewService() {
+		return overviewService;
+	}
+
+	public void setOverviewService(OverviewService overviewService) {
+		this.overviewService = overviewService;
+	}
+
+	/**
+	 * get����
+	 * @return beginDate
+	 */
+	public Date getBeginDate() {
+		return beginDate;
+	}
+
+	/**
+	 * set����
+	 */
+	public void setBeginDate(Date beginDate) {
+		this.beginDate = beginDate;
+	}
+	
+	/**
+	 * get����
+	 * @return endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+	
+	public String getFunctionName() {
+		return functionName;
+	}
+
+	/**
+	 * set����
+	 */
+	public void setFunctionName(String functionName) {
+		this.functionName = functionName;
+	}
+	public String getUserName() {
+		return userName;
+	}
+
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getResult() {
+		return result;
+	}
+
+
+	public void setResult(String result) {
+		this.result = result;
+	}
+}

@@ -1,0 +1,22 @@
+
+package com.oio.wawj.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.oio.wawj.bean.CdrCall;
+import com.oio.wawj.bean.Org;
+import com.oio.wawj.util.PageListData;
+
+
+
+@SuppressWarnings("rawtypes")
+public interface OverviewService{
+
+	public Org findOrgNameByOrgId(Integer orgId);
+	public String findRoleNameByUserId(Long userId);
+
+	public List getSecretNoCondition(Long orgId,Long operatorId,String roleName);
+	public List getCallStatistic( long orgId,Long operatorId,String roleName);
+}
+              

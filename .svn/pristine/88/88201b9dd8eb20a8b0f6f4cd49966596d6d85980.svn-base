@@ -1,0 +1,14 @@
+package com.oio.wawj.service;
+
+import com.oio.wawj.bean.ParameterOrgRela;
+
+public interface ParameterOrgRelaService {
+	
+	public ParameterOrgRela findPORById(Integer setId,Integer parameterId);
+
+	public void saveOrUpdate(ParameterOrgRela parameterOrgRela);
+	
+	public void update(ParameterOrgRela parameterOrgRela);
+	
+	public void save(ParameterOrgRela parameterOrgRela);
+}

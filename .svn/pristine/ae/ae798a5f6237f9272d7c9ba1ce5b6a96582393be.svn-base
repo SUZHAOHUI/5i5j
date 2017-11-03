@@ -1,0 +1,703 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans
+xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.springframework.org/schema/context"  
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:mongo="http://www.springframework.org/schema/data/mongo" 
+xsi:schemaLocation="http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/data/mongo   
+http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd 
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop-2.5.xsd">
+
+	<!-- 定义使用C3P0连接池的数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 指定连接数据库的JDBC驱动 -->
+		<property name="driverClass">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<!-- 连接数据库所用的URL 172.27.111.69-->
+		<property name="jdbcUrl">
+			<value>jdbc:mysql://101.201.101.70:3306/icrm?
+				useUnicode=true&amp;characterEncoding=utf-8&amp;
+				zeroDateTimeBehavior=convertToNull&amp;
+				transformedBitIsBoolean=true
+			</value>
+		</property>
+		<property name="properties" ref="dataSource2Properties" />
+
+				<!-- 设置数据库连接池的最大连接数 -->
+				<property name="maxPoolSize">
+					<value>20</value>
+				</property>
+				<!-- 设置数据库连接池的最小连接数 -->
+				<property name="minPoolSize">
+					<value>2</value>
+				</property>
+				<!-- 设置数据库连接池的初始化连接数 -->
+				<property name="initialPoolSize">
+					<value>2</value>
+				</property>
+				<!-- 设置数据库连接池的连接的最大空闲时间,单位为秒 -->
+				<property name="maxIdleTime">
+					<value>600</value>
+				</property>
+	</bean>
+
+	<bean id="dataSource2Properties" class="com.oio.wawj.util.PropertiesEncryptFactoryBean">
+		<property name="properties">
+			<props>
+				<!-- dev -->
+<!-- 
+				<prop key="user">U5Xd+Ot7Bu0=</prop> -->
+
+
+				<!-- root -->
+			    <prop key="user">Hrix7lH2GQY=</prop>
+				<prop key="password">axxK1wzyJBxd2Pxrw1IhcQ==</prop>
+		
+<!--     101.200.221.216数据库 -->
+<!--                 <prop key="user">Hrix7lH2GQY=</prop>  -->
+<!--  				<prop key="password">swVfgwQVKsBd2Pxrw1IhcQ==</prop> -->
+			</props>
+		</property>
+	</bean>
+
+	<!-- 定义Hibernate的SessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<!-- 依赖注入上面定义的数据源dataSource -->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- 注册Hibernate的ORM映射文件 -->
+		<property name="mappingResources">
+			<list>
+			<value>com/oio/wawj/orm/mapping/User.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Org.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Acms.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/UserAcmsRela.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Channel.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Parameter.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Template.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Ringtone.hbm.xml</value>		
+			<value>com/oio/wawj/orm/mapping/SubsRela.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/TransferNumberSet.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CdrCall.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CallState.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/OnHookSmsRecord.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Role.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/UserRole.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/Function.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/RoleFunctions.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/OperationLog.hbm.xml</value>				
+			<value>com/oio/wawj/orm/mapping/Customer.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CustomerSource.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CustomerStatus.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CustomerType.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/DeptInfo.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/CollectionId.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/DutyInfo.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/EmpPersonal.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/EmpDuty.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/EmpDismission.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/DeptTree.hbm.xml</value>
+			<value>com/oio/wawj/orm/mapping/DeptRela.hbm.xml</value>
+		    <value>com/oio/wawj/orm/mapping/Erp.hbm.xml</value>
+			</list>
+		</property>
+		<!-- 设置Hibernate的相关属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<!-- 设置Hibernate的数据库方言 -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<!-- 设置Hibernate是否在控制台输出SQL语句，开发调试阶段通常设为true -->
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">false</prop>
+				<!-- 设置Hibernate一个提交批次中的最大SQL语句数 -->
+				<!-- watch hibernate -->
+				<prop key="hibernate.generate_statistics">true</prop>
+				<!-- end watch -->
+				<prop key="hibernate.jdbc.batch_size">50</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!--定义Hibernate的事务管理器HibernateTransactionManager -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<!-- 依赖注入上面定义的sessionFactory -->
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!--定义Spring的事务拦截器TransactionInterceptor -->
+	<bean id="transactionInterceptor"
+		class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<!-- 依赖注入上面定义的事务管理器transactionManager -->
+		<property name="transactionManager" ref="transactionManager" />
+		<!-- 定义需要进行事务拦截的方法及所采用的事务控制类型 -->
+		<property name="transactionAttributes">
+			<props>
+				<!-- 以browse、list、load、get及is开头的所有方法采用只读型事务控制类型 -->
+				<prop key="browse*">PROPAGATION_REQUIRED,readOnly</prop>
+				<prop key="list*">PROPAGATION_REQUIRED,readOnly</prop>
+				<prop key="load*">PROPAGATION_REQUIRED,readOnly</prop>
+				<prop key="get*">PROPAGATION_REQUIRED,readOnly</prop>
+				<prop key="is*">PROPAGATION_REQUIRED,readOnly</prop>
+				<!-- 所有方法均进行事务控制，如果当前没有事务，则新建一个事务 -->
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 定义BeanNameAutoProxyCreatorf进行Spring的事务处理 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<!-- 针对指定的bean自动生成业务代理 -->
+		<property name="beanNames">
+			<list>
+				<value>sysUserService</value>
+			</list>
+		</property>
+		<!-- 这个属性为true时，表示被代理的是目标类本身而不是目标类的接口 -->
+		<property name="proxyTargetClass">
+			<value>true</value>
+		</property>
+		<!-- 依赖注入上面定义的事务拦截器transactionInterceptor -->
+		<property name="interceptorNames">
+			<list>
+				<value>transactionInterceptor</value>
+			</list>
+		</property>
+	</bean>
+    
+   
+
+	<!-- ************************************service和dao配置开始**************************** -->
+	<!-- 装配通用数据库访问类BaseDAOImpl -->
+	
+	<!-- SysUser Start -->  
+	<bean id="userdao" class="com.oio.wawj.dao.impl.UserDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="userService" class="com.oio.wawj.service.impl.UserServiceImpl">
+		<property name="dao" ref="userdao" />
+	</bean>
+	
+	<!-- SysUser End -->
+	<!-- Staff Start -->  
+	<bean id="staffdao" class="com.oio.wawj.dao.impl.StaffDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="staffService" class="com.oio.wawj.service.impl.StaffServiceImpl">
+		<property name="dao" ref="staffdao" />
+		<property name="uarDao" ref="uardao" />
+		<property name="subdao" ref="axbdao" />
+		<property name="numDao" ref="numberdao" />
+	</bean>
+	<!-- staff End -->
+	<!-- Axb Start -->  
+	<bean id="axbdao" class="com.oio.wawj.dao.impl.AxbDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="axbService" class="com.oio.wawj.service.impl.AxbServiceImpl">
+		<property name="dao" ref="axbdao" />
+	</bean>
+	<!-- Axb End -->
+		<!-- Axb Start -->  
+	<bean id="transferNumberdao" class="com.oio.wawj.dao.impl.TransferNumberDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="transferNumberService" class="com.oio.wawj.service.impl.TransferNumberServiceImpl">
+		<property name="dao" ref="transferNumberdao" />
+	</bean>
+	<!-- Axb End -->
+		<!-- Number Start -->  
+	<bean id="numberdao" class="com.oio.wawj.dao.impl.NumberDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="numberService" class="com.oio.wawj.service.impl.NumberServiceImpl">
+		<property name="dao" ref="numberdao" />
+		<property name="uarDao" ref="uardao" />
+	</bean>
+	<!-- Number End -->
+			<!-- UserAcmsRela Start -->  
+	<bean id="uardao" class="com.oio.wawj.dao.impl.UserAcmsRelaDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="uarService" class="com.oio.wawj.service.impl.UserAcmsRelaServiceImpl">
+		<property name="dao" ref="uardao" />
+	</bean>
+	<!-- UserAcmsRela End -->
+    <!-- Overview Start -->  
+	<bean id="overviewdao" class="com.oio.wawj.dao.impl.OverviewDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="overviewService" class="com.oio.wawj.service.impl.OverviewServiceImpl">
+		<property name="dao" ref="overviewdao" />
+	</bean>
+	<!-- Overview End -->
+	<!-- Org Start -->  
+	<bean id="orgdao" class="com.oio.wawj.dao.impl.OrgDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="orgService" class="com.oio.wawj.service.impl.OrgServiceImpl">
+		<property name="dao" ref="orgdao" />
+	</bean>
+	<!-- Org End -->
+	
+	
+    <bean id="channeldao" class="com.oio.wawj.dao.impl.ChannelDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="channelService" class="com.oio.wawj.service.impl.ChannelServiceImpl">
+		<property name="dao" ref="channeldao" />
+	</bean>
+	
+	 <bean id="parameterdao" class="com.oio.wawj.dao.impl.ParameterDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="parameterService" class="com.oio.wawj.service.impl.ParameterServiceImpl">
+		<property name="dao" ref="parameterdao" />
+	</bean>
+	
+    <bean id="templatedao" class="com.oio.wawj.dao.impl.TemplateDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="templateService" class="com.oio.wawj.service.impl.TemplateServiceImpl">
+		<property name="dao" ref="templatedao" />
+	</bean>
+
+	<!-- CallRecords Start -->  
+	<bean id="callRecordsdao" class="com.oio.wawj.dao.impl.CallRecordsDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="callRecordsService" class="com.oio.wawj.service.impl.CallRecordsServiceImpl">
+		<property name="dao" ref="callRecordsdao" />
+	</bean>
+	<!-- CallRecords End -->
+
+    <bean id="ringtonedao" class="com.oio.wawj.dao.impl.RingtoneDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="ringtoneService" class="com.oio.wawj.service.impl.RingtoneServiceImpl">
+		<property name="dao" ref="ringtonedao" />
+	</bean>
+
+    <bean id="callInAnalyzedao" class="com.oio.wawj.dao.impl.CallInAnalyzeDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="callInAnalyzeService" class="com.oio.wawj.service.impl.CallInAnalyzeServiceImpl">
+		<property name="dao" ref="callInAnalyzedao" />
+	</bean>
+
+    <bean id="onHookSmsRecorddao" class="com.oio.wawj.dao.impl.OnHookSmsRecordDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="onHookSmsRecordService" class="com.oio.wawj.service.impl.OnHookSmsRecordServiceImpl">
+		<property name="dao" ref="onHookSmsRecorddao" />
+	</bean>
+
+
+    <bean id="roledao" class="com.oio.wawj.dao.impl.RoleDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="roleService" class="com.oio.wawj.service.impl.RoleServiceImpl">
+		<property name="dao" ref="roledao" />
+	</bean>
+	
+	<bean id="userRoledao" class="com.oio.wawj.dao.impl.UserRoleDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="userRoleService" class="com.oio.wawj.service.impl.UserRoleServiceImpl">
+		<property name="dao" ref="userRoledao" />
+	</bean>
+	
+	
+	<bean id="functionDAO" class="com.oio.wawj.dao.impl.FunctionDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="functionService" class="com.oio.wawj.service.impl.FunctionServiceImpl">
+		<property name="dao" ref="functionDAO" />
+	</bean>	
+
+
+
+	<bean id="roleFunctionsDAO" class="com.oio.wawj.dao.impl.RoleFunctionsDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="roleFunctionsService" class="com.oio.wawj.service.impl.RoleFunctionsServiceImpl">
+		<property name="dao" ref="roleFunctionsDAO" />
+	</bean>
+
+   <bean id="operationLogdao" class="com.oio.wawj.dao.impl.OperationLogDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="operationLogService" class="com.oio.wawj.service.impl.OperationLogServiceImpl">
+		<property name="dao" ref="operationLogdao" />
+	</bean>
+	
+	<bean id="customerDAO" class="com.oio.wawj.dao.impl.CustomerDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="customerService" class="com.oio.wawj.service.impl.CustomerServiceImpl">
+		<property name="dao" ref="customerDAO" />
+	</bean>
+	
+	
+	<bean id="collectionIdDAO" class="com.oio.wawj.dao.impl.CollectionIdDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="collectionIdService" class="com.oio.wawj.service.impl.CollectionIdServiceImpl">
+		<property name="dao" ref="collectionIdDAO" />
+	</bean>
+	
+	<bean id="dutyInfoDAO" class="com.oio.wawj.dao.impl.DutyInfoDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="dutyInfoService" class="com.oio.wawj.service.impl.DutyInfoServiceImpl">
+		<property name="dao" ref="dutyInfoDAO" />
+	</bean>
+	
+	<bean id="empPersonalDAO" class="com.oio.wawj.dao.impl.EmpPersonalDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="empPersonalService" class="com.oio.wawj.service.impl.EmpPersonalServiceImpl">
+		<property name="dao" ref="empPersonalDAO" />
+	</bean>
+	
+	
+	<bean id="empDismissionDAO" class="com.oio.wawj.dao.impl.EmpDismissionDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="empDismissionService" class="com.oio.wawj.service.impl.EmpDismissionServiceImpl">
+		<property name="dao" ref="empDismissionDAO" />
+	</bean>
+	
+	
+	<bean id="empDutyDAO" class="com.oio.wawj.dao.impl.EmpDutyDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="empDutyService" class="com.oio.wawj.service.impl.EmpDutyServiceImpl">
+		<property name="dao" ref="empDutyDAO" />
+	</bean>
+	
+	
+	
+
+	<!-- Department Start -->  
+	<bean id="deptdao" class="com.oio.wawj.dao.impl.DepartmentDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="deptService" class="com.oio.wawj.service.impl.DepartmentServiceImpl">
+		<property name="dao" ref="deptdao" />
+	</bean>
+	<!-- Department End -->
+
+
+	<!-- SysUserRole End -->
+   
+
+	<!-- ************************************service和dao配置结束**************************** -->
+
+	<!-- ************************************Action配置开始**************************** -->
+
+	<!-- Base Action Start -->
+	<bean id="baseAction" class="com.oio.wawj.struts.action.BaseAction" scope="prototype">
+		 <property name="operationLogService" ref="operationLogService" />
+		 <property name="sysUserRoleService" ref="sysUserRoleService" />		 
+	</bean>
+	<!-- Base Action End -->
+
+	<!-- 部署Struts2负责系统用户管理的控制器AdminAction -->
+    <!--  admin -->	
+
+	<!-- SysUser Start -->
+	<bean id="sysUserAction" class="com.oio.wawj.struts.action.UserAction" scope="prototype">
+		<property name="userService" ref="userService" />
+		<property name="Service" ref="roleFunctionsService" />
+		<property name="functionService" ref="functionService" />
+	    <property name="overviewService" ref="overviewService" />
+	    <property name="operationLogService" ref="operationLogService" />
+	</bean>
+	<!-- SysUser End -->
+		<!-- Staff Start -->
+	<bean id="staffAction" class="com.oio.wawj.struts.action.StaffAction" scope="prototype">
+		<property name="service" ref="staffService" />
+		<property name="uarService" ref="uarService" />
+		<property name="aService" ref="axbService" />
+		<property name="tfService" ref="transferNumberService" />
+		<property name="numService" ref="numberService" />
+	</bean>
+	<!-- Staff End -->
+			<!-- Axb Start -->
+	<bean id="axbAction" class="com.oio.wawj.struts.action.AxbAction" scope="prototype">
+		<property name="service" ref="axbService" />	
+	</bean>
+	<!-- Axb End -->
+			<!-- Ax Start -->
+	<bean id="axAction" class="com.oio.wawj.struts.action.AxAction" scope="prototype">
+		<property name="service" ref="axbService" />	
+		<property name="staffService" ref="staffService" />	
+		<property name="nService" ref="numberService" />	
+	</bean>
+	<!-- Ax End -->
+		<!-- Number Start -->
+	<bean id="numberAction" class="com.oio.wawj.struts.action.NumberAction" scope="prototype">
+		<property name="service" ref="numberService" />	
+		<property name="uarService" ref="uarService" />	
+		<property name="staffService" ref="staffService" />	
+	</bean>
+	<!-- Number End -->
+			<!-- Overview Start -->
+	<bean id="overviewAction" class="com.oio.wawj.struts.action.OverviewAction" scope="prototype">
+		<property name="service" ref="overviewService" />	
+	</bean>
+	<!-- Overview End -->
+
+		<!-- operationLog Start -->
+	<bean id="operationLogAction" class="com.oio.wawj.struts.action.OperationLogAction" scope="prototype">
+		<property name="service" ref="operationLogService" />	
+	</bean>
+	<!-- operationLog End -->
+
+	<!-- Template End -->
+
+
+	<!-- SysAttrValue End -->
+	<!-- Org Start -->
+	<bean id="orgAction" class="com.oio.wawj.struts.action.OrgAction"
+		scope="prototype">
+		<property name="service" ref="orgService" />	
+		<property name="staffService" ref="staffService" />		
+	</bean>
+	<!-- Org End -->
+		<!-- CallRecords Start -->
+	<bean id="callRecordsAction" class="com.oio.wawj.struts.action.CallRecordsAction" scope="prototype">
+		<property name="service" ref="callRecordsService" />		
+		<property name="userService" ref="userService" />		
+	</bean>
+	<!-- CallRecords End -->
+
+
+	
+	<!-- Account Start -->
+	<bean id="accountAction" class="com.oio.wawj.struts.action.AccountAction" scope="prototype" parent="baseAction">
+		<property name="accountService" ref="accountService" />
+		<property name="operationLogService" ref="operationLogService" />
+	</bean>
+	<!-- Account End -->
+	<!-- SecretNo Start -->
+	<bean id="secretNoAction" class="com.oio.wawj.struts.action.SecretNoAction" scope="prototype">
+		<property name="secretNoService" ref="secretNoService" />
+	</bean>
+	<!-- SecretNo End -->
+	
+		<!-- Member Start -->
+	<bean id="memberAction" class="com.oio.wawj.struts.action.MemberAction" scope="prototype">
+		<property name="service" ref="memberService" />
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- Member End -->
+	
+	<!--  Start -->
+	<bean id="rechargeModleAction" class="com.oio.wawj.struts.action.RechargeModleAction" scope="prototype">
+
+	</bean>
+	<!--  End -->
+	<!--  Start -->
+	<bean id="queryBalanceAction" class="com.oio.wawj.struts.action.QueryBalanceAction" scope="prototype">
+
+	</bean>
+	<!--  End -->
+	<!--  Start -->
+	<bean id="queryOrderAction" class="com.oio.wawj.struts.action.QueryOrderAction" scope="prototype">
+
+	</bean>
+	<!--  End -->
+	
+			<!-- Recharge Start -->
+	<bean id="rechargeAction" class="com.oio.wawj.struts.action.RechargeAction" scope="prototype">
+		<property name="service" ref="rechargeService" />
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- Recharge End -->
+	
+	<!-- Payment Start -->
+	<bean id="paymentAction" class="com.oio.wawj.struts.action.PaymentAction" scope="prototype">
+		<property name="paymentService" ref="paymentService" />
+		<property name="accountService" ref="accountService" />
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- Payment End -->
+
+   		<!-- SysRoleFunction Start -->
+   	<bean id="sysRoleFunctionAction" class="com.oio.wawj.struts.action.SysRoleFunctionAction"
+		scope="prototype">
+		<property name="service" ref="sysRoleFunctionsService" />
+		<property name="sysRoleService" ref="sysRoleService" />
+		<property name="sysFunctionService" ref="sysFunctionService" />
+	</bean>
+
+   	<!-- SysFunction Start -->
+	<bean id="sysFunctionAction" class="com.oio.wawj.struts.action.SysFunctionAction"
+		scope="prototype">
+		<property name="service" ref="sysFunctionService" />
+	</bean>
+	<!-- SysFunction End -->
+	
+   	<!-- Service Start -->
+	<bean id="serviceAction" class="com.oio.wawj.struts.action.ServiceAction"
+		scope="prototype">
+		<property name="service" ref="serviceService" />
+	</bean>
+	
+	<!-- Service End -->
+		<!-- USSD Start -->
+	<bean id="ussdStatisticsAction" class="com.oio.wawj.struts.action.UssdStatisticsAction" scope="prototype" >
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- USSD End -->
+			<!-- SecretNoStatistic Start -->
+	<bean id="secretNoStatisticsAction" class="com.oio.wawj.struts.action.SecretNoStatisticsAction" scope="prototype" parent="baseAction" >
+		<property name="customerService" ref="customerService" />
+		<property name="aservice" ref="acistatService" />
+	</bean>
+	<!-- SecretNoStatistic End -->
+			<!-- SecretNoStatistic Start -->
+	<bean id="callAnalysisAction" class="com.oio.wawj.struts.action.CallAnalysisAction" scope="prototype" >
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- SecretNoStatistic End -->
+		<!-- QuerySecret Start -->
+	<bean id="querySecretNoAction" class="com.oio.wawj.struts.action.QuerySecretNoAction" scope="prototype" >
+		<property name="service" ref="memberService" />
+	</bean>
+	<!-- QuerySecret End -->
+			<!-- QuerySecret Start -->
+	<bean id="smsStatisticsAction" class="com.oio.wawj.struts.action.SmsStatisticsAction" scope="prototype" >
+		<property name="service" ref="smsStatisticsService" />
+		<property name="customerService" ref="customerService" />
+	</bean>
+	<!-- QuerySecret End -->
+	
+	<!-- infoManagement Start -->
+     <bean id="infoManagementAction" class="com.oio.wawj.struts.action.InfoManagementAction" scope="prototype">
+		<property name="customerService" ref="customerService" />
+		<property name="accountService" ref="accountService" />
+		<property name="service" ref="rechargeService" />
+		<property name="paymentService" ref="paymentService" />
+	 </bean>
+	<!-- ImxiuTemplate Start -->
+     <bean id="imxiuTemplateAction" class="com.oio.wawj.struts.action.ImxiuTemplateAction" scope="prototype">
+
+	 </bean>
+	 <!-- resetpassword Start -->
+     <bean id="resetPasswordAction" class="com.oio.wawj.struts.action.ResetPasswordAction" scope="prototype">
+            <property name="sysUserService" ref="sysUserService" />
+	 </bean>
+	 	 <!-- auth Start -->
+     <bean id="authAction" class="com.oio.wawj.struts.action.AuthAction" scope="prototype">
+           <property name="customerService" ref="customerService" />
+		   <property name="accountService" ref="accountService" />
+		   <property name="paService" ref="personalAuthService" />
+	 </bean>
+	 
+	<bean id="channelAction" class="com.oio.wawj.struts.action.ChannelAction" scope="prototype">
+		<property name="channelService" ref="channelService" />
+	</bean>
+	 
+    <bean id="parameterAction" class="com.oio.wawj.struts.action.ParameterAction" scope="prototype">
+		<property name="parameterService" ref="parameterService" />
+		<property name="ringtoneService" ref="ringtoneService" />
+		<property name="channelService" ref="channelService" />
+	</bean> 
+	 
+	  <bean id="templateAction" class="com.oio.wawj.struts.action.TemplateAction" scope="prototype">
+		<property name="templateService" ref="templateService" />
+	</bean> 
+	
+	  <bean id="ringtoneAction" class="com.oio.wawj.struts.action.RingtoneAction" scope="prototype">
+		<property name="ringtoneService" ref="ringtoneService" />
+	</bean> 
+	 
+	 <bean id="callInAnalyzeAction" class="com.oio.wawj.struts.action.CallInAnalyzeAction" scope="prototype">
+		<property name="callInAnalyzeService" ref="callInAnalyzeService" />
+		<property name="userService" ref="userService" />
+	</bean> 
+	
+	 <bean id="roleAction" class="com.oio.wawj.struts.action.RoleAction" scope="prototype">
+		<property name="roleService" ref="roleService" />
+		<property name="collectionIdService" ref="collectionIdService" />
+	</bean> 
+	
+    <bean id="userRoleAction" class="com.oio.wawj.struts.action.UserRoleAction" scope="prototype">
+		<property name="userRoleService" ref="userRoleService" />
+	</bean> 
+	
+	
+	<bean id="functionAction" class="com.oio.wawj.struts.action.FunctionAction" scope="prototype">
+		<property name="functionService" ref="functionService" />
+	</bean> 
+	
+	<bean id="roleFunctionAction" class="com.oio.wawj.struts.action.RoleFunctionAction" scope="prototype">
+		<property name="Service" ref="roleFunctionsService" />
+		<property name="functionService" ref="functionService" />
+	</bean> 
+	
+	<bean id="customerAction" class="com.oio.wawj.struts.action.CustomerAction" scope="prototype">
+		<property name="customerService" ref="customerService" />
+		<property name="userService" ref="userService" />
+	</bean> 
+	
+	<bean id="collectionAction" class="com.oio.wawj.struts.action.CollectionAction" scope="prototype">
+		<property name="collectionIdService" ref="collectionIdService" />
+	</bean> 
+	
+	<bean id="empAction" class="com.oio.wawj.struts.action.EmpAction" scope="prototype">
+		<property name="dutyInfoService" ref="dutyInfoService" />
+		<property name="empPersonalService" ref="empPersonalService" />
+		<property name="empDismissionService" ref="empDismissionService" />
+		<property name="empDutyService" ref="empDutyService" />
+	</bean> 
+	
+	
+	
+	
+				<!-- Interface Start -->
+
+	<bean id="departmentAction" class="com.oio.wawj.struts.action.DepartmentAction" scope="prototype">
+	<property name="service" ref="deptService" /> 
+	</bean>
+	<!-- Overview End -->
+	<bean id="erpAction" class="com.oio.wawj.struts.action.ERPAction" scope="prototype">
+	<property name="deptService" ref="deptService" /> 
+	</bean>
+	
+	 <bean id="notifyRecordAction" class="com.oio.wawj.struts.action.NotifyRecordAction" scope="prototype">
+		<property name="onHookSmsRecordService" ref="onHookSmsRecordService" />
+		<property name="userService" ref="userService" />	
+	</bean>
+	<bean id="notFoundErrerAction" class="com.oio.wawj.struts.action.NotFoundErrerAction" scope="prototype">
+		
+	</bean> 
+	<!-- watch hibernate -->
+	<bean id="hibernateStatisticAction"
+		class="com.oio.wawj.struts.action.HibernateStatisticAction"
+		scope="prototype">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+<!-- 	<bean id="monitorSystemAction" class="com.dtmobile.boss.struts.action.MonitorSystemAction" -->
+<!-- 		scope="prototype"> -->
+<!-- 		<property name="service" ref="monitorService" /> -->
+<!-- 	</bean> -->
+	<!-- end watch -->
+
+	<!-- ************************************Action配置结束**************************** -->
+
+
+
+
+</beans>

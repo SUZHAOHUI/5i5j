@@ -1,0 +1,17 @@
+pageSize=8
+provisionTaskPeroid=30
+provisionNumber=100
+releaseTime=24
+password=123456
+userName=root
+recyclResourceTime=1
+checkEnable=false
+userMD5Key=9i\!3w5r6t%9x8n7b&gx3.-63js?59sp+\=-
+ftpHostIp=101.201.101.70
+sftpUser=ac
+sftpPassword=9o0p(O)P
+directory=/data/voicedata/wywawj
+ftpUser=ftpwywafj
+ftpPassword=9o0p(O)P
+#ftpUser=ac
+#ftpPassword=9o0p(O)P

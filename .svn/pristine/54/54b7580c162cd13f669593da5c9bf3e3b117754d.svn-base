@@ -1,0 +1,121 @@
+package com.oio.wawj.util;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TreeMap;
+
+
+import org.json.JSONObject;
+
+
+
+public class AxUnSubs {
+	 public static void axUnsub(String prtms,String acms){
+       	   
+		    String ts= new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+	        String unsubts=new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+		
+	        String msgid=UUIDGenerator.getUUID();
+	        TreeMap<String, String> inmap = new TreeMap<String, String>();
+			  inmap.put("ver", "1.0");
+			  inmap.put("msgid",msgid);
+			  inmap.put("ts", ts);
+			  inmap.put("service", "acbss");
+			  inmap.put("msgtype", "unsubreq");
+			  inmap.put("appkey","wywawj");
+			  inmap.put("prtms",prtms);
+			  inmap.put("rsvd","0");
+			  inmap.put("acms",acms);
+			  inmap.put("unsubts",unsubts); 
+			  System.out.println(inmap.entrySet());	
+			  String sid = SignDigest.signature(inmap, "+ZOLLJ/EFIQEVIWM","sid");			
+			  JSONObject jsonObject = new JSONObject();
+
+				try {
+					jsonObject.put("ver", "1.0");
+					jsonObject.put("msgid",msgid);
+					jsonObject.put("ts", ts);
+					jsonObject.put("service", "acbss");
+					jsonObject.put("msgtype", "unsubreq");
+					jsonObject.put("appkey", "wywawj");
+					jsonObject.put("prtms",prtms);
+					jsonObject.put("rsvd","0");
+					jsonObject.put("acms",acms);
+					jsonObject.put("unsubts",unsubts);
+					jsonObject.put("sid", sid);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				String requestContent = jsonObject.toString();
+
+				System.out.println("请求参数"+requestContent.toString());
+				String respCon = null;
+			
+				respCon=HttpClientUtil.sendPost(requestContent);
+					System.out.println("返回值"+respCon);	
+				
+	  }
+	 public static void main(String[] args){
+//			String  acms="13207774044";
+//			String  prtms="13526636962";
+//		 axUnsub(prtms,acms);
+//		 axUnsub("13738121403","15525401749");
+//		 axUnsub("18062076424","15525402044");
+//		 axUnsub("18310725682","15525401504");
+//		 axUnsub("15612312312","15525401654");
+//		 axUnsub("15572450898","15525401849");
+//		 axUnsub("17671468976","15525402047");
+//		 axUnsub("18210028617","15525401743");
+//		 axUnsub("13821697246","15525401942");
+//		 axUnsub("18861855157","15525402146");
+//		 axUnsub("18610899120","15525402145");
+//		 axUnsub("15386817807","15525401740");
+//		 axUnsub("15210191779","15525402141");
+//		 axUnsub("13162520207","15525402249");
+//		 axUnsub("15852734990","15525402154");
+//		 axUnsub("15611135994","15525401742");
+//		 axUnsub("18062076424","15525402034");
+//		 axUnsub("15387531656","15525402049");
+//		 axUnsub("13333439363","15525401469");
+//		 axUnsub("13811542091","15525401748");
+//		 axUnsub("15611088283","15525402245");
+//		 axUnsub("13920957525","15525401884");
+//		 axUnsub("15810400411","15525401747");
+//		 axUnsub("18610899120","15525402124");
+//		 axUnsub("15010623213","15525401642");
+//		 axUnsub("13915325057","15525402204");
+//		 axUnsub("15386817807","15525401664");
+//		 axUnsub("18910262129","15525401644");
+//		 axUnsub("18636910139","15525401649");
+//		 axUnsub("18037789520","15525401840");
+//		 axUnsub("15810400411","15525401524");
+//		 axUnsub("15834146486","15525401745");
+//		 axUnsub("15611135994","15525401544");
+//		 axUnsub("18910238587","15525401614");
+//		 axUnsub("13069302381","15525402084");
+//		 axUnsub("18920734610","15525401964");
+//		 axUnsub("18500908958","15525401841");
+//		 axUnsub("17773155525","15525402074");
+		 //"subs_rela_ax:13526636962:15525401469:wywawj:s"
+		 axUnsub("15037900958","15525401742");
+//		 axUnsub("17621835644","15525405394");
+//		 axUnsub("15850214714","15525405354");
+//		 axUnsub("13820850342","15525401940");
+//		 axUnsub("13920923609","15525401914");
+//		 axUnsub("17773155525","15525402140");
+//		 axUnsub("13702107780","15525401874");
+//		 axUnsub("15221401182","15525402243");
+//		 axUnsub("18062076424","15525402046");
+//		 axUnsub("13662187077","15525401943");
+//		 axUnsub("18762603667","15525402147");
+//		 axUnsub("15386817807","15525401744");
+//		 axUnsub("15387531656","15525402134");
+//		 axUnsub("18692262595","15525402142");
+
+
+
+
+
+	 }
+}

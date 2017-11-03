@@ -1,0 +1,131 @@
+package com.oio.wawj.service.impl;
+
+import java.util.Map;
+
+import com.oio.wawj.dao.CallInAnalyzeDAO;
+import com.oio.wawj.service.CallInAnalyzeService;
+import com.oio.wawj.util.PageListData;
+
+public class CallInAnalyzeServiceImpl implements CallInAnalyzeService {
+
+	private CallInAnalyzeDAO dao;
+	
+	
+	
+	public CallInAnalyzeDAO getDao() {
+		return dao;
+	}
+
+	public void setDao(CallInAnalyzeDAO dao) {
+		this.dao = dao;
+	}
+
+	@Override
+	public PageListData findList(Map param, int currentPage, int pageSize) {
+		
+		
+		// TODO Auto-generated method stub
+	 // String sql = "select c_t.channel_name ,sum(c_t.connect),sum(c_t.disconnect),sum(c_t.cnt),round(sum(c_t.connect)/sum(c_t.cnt)*100,2) ";
+		String sql = "select  c_t.channel_name as channelName,sum(c_t.connect) as connTotal,sum(c_t.disconnect) as disconnTotal,sum(c_t.cnt) as callTotal," +
+		 		" round(sum(c_t.connect)/sum(c_t.cnt)*100,2) as connRate  ";
+		String sql2= " from (select c.channel_name as channel_name ,case when cc.release_cause='16' then count(*) end as connect,case when cc.release_cause<>'16' then count(*) end as disconnect,count(*) as cnt "; 
+            
+	  	String sql3= " inner join acms on cc.acms=acms.acms " +
+	  		" inner join (select channel_id,acms_id,user_id from user_acms_rela where purpose='C' and state = 'V' ) uar on acms.acms_id= uar.acms_id " +
+	  		" inner join channel c on c.channel_id=uar.channel_id " +
+	  		" inner join user u on u.user_id=uar.user_id " +
+	  		" inner join org o on o.org_id=u.org_id and o.set_id=u.set_id " ;
+	    
+		 if (param.get("checkBox") != null 
+					    && ((String) param.get("checkBox")).equals("true")
+				  ) {
+
+			 sql2 += " from (select distinct prtms,acms,otherms,release_cause,release_time,start_time,call_time  from cdr_call where call_type in ('1')) as cc " ;
+		  }else{
+			  
+			 sql2 += " from cdr_call cc " ;
+		  }
+		
+	    String sql1 = sql2+sql3;
+		 
+		
+	   return dao.getList(sql,sql1,param, currentPage, pageSize);
+	}
+
+	
+	@Override
+	public PageListData findDeptList(Map param, int currentPage, int pageSize) {
+		
+		
+		// TODO Auto-generated method stu
+		 String sql = " select c_t.org_name as orgName,sum(connect) as connTotal ,sum(disconnect) as disconnTotal ,sum(cnt) as callTotal , round(sum(connect)/sum(cnt)*100,2) as connRate ";
+		 
+		 String sql2 = " from (select o.org_name, " +
+				" case when cc.release_cause='16' then count(*) end  as connect, " +
+				" case when cc.release_cause<>'16' then count(*) end  as disconnect," +
+				" count(*) cnt" ;
+				
+				
+		 String sql3 =	" inner join acms on cc.acms=acms.acms" +
+				" inner join (select channel_id,acms_id,user_id from user_acms_rela where state = 'V' ) uar on acms.acms_id= uar.acms_id" +
+				" inner join user u on u.user_id=uar.user_id" +
+				" inner join org o on o.org_id=u.org_id and o.set_id=u.set_id " +
+				" inner join channel c on c.channel_id=uar.channel_id " ;
+		 
+		 
+		 if (param.get("checkBox") != null 
+				    && ((String) param.get("checkBox")).equals("true")
+			  ) {
+
+		 sql2 += " from (select distinct prtms,acms,otherms,release_cause,release_time,start_time,call_time from cdr_call where call_type in ('1')) as cc " ;
+	  }else{
+		  
+		 sql2 += " from (select * from cdr_call where call_type in ('1')) cc " ;
+	  }
+		 
+ 
+		 
+		 String sql1 = sql2+sql3;
+	   return dao.getDeptList(sql,sql1,param, currentPage, pageSize);
+	}
+	
+	
+
+	@Override
+	public PageListData findStaffList(Map param, int currentPage, int pageSize) {
+		
+		
+		// TODO Auto-generated method stub
+		String sql = "select c_t.name as name ,c_t.channel_name as channelName ,c_t.code as code ,sum(connect) as connTotal ," +
+				     " sum(disconnect) as disconnTotal ,sum(cnt) as callTotal , round(sum(connect)/sum(cnt)*100,2) as connRate ";
+		String sql2= " from (select u.name,case when cc.release_cause='16' then count(*) end  as connect," +
+				     "case when cc.release_cause<>'16' then count(*) end  as disconnect, count(*) cnt, c.channel_name, u.code "; 
+            
+	  	String sql3= " inner join acms on cc.acms=acms.acms " +
+	  			     " inner join (select channel_id,acms_id,user_id from user_acms_rela where state = 'V') uar on acms.acms_id= uar.acms_id " +
+	  			     " inner join user u on u.user_id=uar.user_id " +
+	  			     " inner join org o on o.org_id=u.org_id and o.set_id=u.set_id" +
+	  			     " inner join channel c on c.channel_id=uar.channel_id " ;
+	    
+		 if (param.get("checkBox") != null 
+					    && ((String) param.get("checkBox")).equals("true")
+				  ) {
+
+			 sql2 += " from (select distinct prtms,acms,otherms,release_cause,release_time,start_time,call_time  from cdr_call where call_type in ('1')) as cc " ;
+		  }else{
+			  
+			 sql2 += " from (select * from cdr_call where call_type in ('1')) cc " ;
+		  }
+		
+	    String sql1 = sql2+sql3;
+		 
+		
+	   return dao.getStaffList(sql,sql1,param, currentPage, pageSize);
+	}
+	
+	@Override
+	public String findChannelName() {
+		// TODO Auto-generated method stub
+		return dao.getfindChannelName();
+	}
+}

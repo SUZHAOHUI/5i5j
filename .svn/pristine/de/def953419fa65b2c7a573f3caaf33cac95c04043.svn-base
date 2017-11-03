@@ -1,0 +1,930 @@
+
+package com.oio.wawj.struts.action;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONObject;
+
+import org.apache.struts2.ServletActionContext;
+
+
+import com.oio.wawj.bean.CdrCall;
+
+import com.oio.wawj.service.CallRecordsService;
+import com.oio.wawj.service.UserService;
+import com.oio.wawj.convertor.DateConverter;
+import com.oio.wawj.service.impl.CallRecordsServiceImpl;
+import com.oio.wawj.util.AboutOperator;
+import com.oio.wawj.util.DateTime;
+import com.oio.wawj.util.FTPClicentHelper;
+import com.opensymphony.xwork2.ActionContext;
+
+/**
+ * 
+ * @author 
+ */
+public class CallRecordsAction extends BaseAction {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private CallRecordsService service = new CallRecordsServiceImpl();
+	
+	private UserService userService; 
+	private CdrCall cdrCall;
+	
+	private Date startDate;
+	private Date endDate;
+	private List<?> dataList;
+	private String result;
+
+	/**
+	 * callInRecords
+	 */
+	public String queryCallInList() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+        String  channel=jo.getString("Channel"); 
+        String  adviser=jo.getString("adviser"); 
+        String  nameOrUser=jo.getString("nameOrUser");
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+       // String  customer=jo.getString("customer"); 
+        String  currentPage1=jo.getString("currentPage"); 
+        String  CustomerNumber=jo.getString("CustomerNumber"); 
+        String  dateVal=jo.getString("dateVal");
+        
+        String deptId=jo.getString("deptId");       
+        String  orgId="";
+        String  setId="";
+        if(deptId!=null&&!deptId.equals("")){
+        	 orgId=deptId.substring(0,10); 
+             setId=deptId.substring(10,15);
+        }
+        
+        String  isDiff=jo.getString("isDiff");
+        
+        
+        String fp=String.valueOf(AboutOperator.getUser().getFunctionPermission());
+        
+        if(fp.equals("1")&&(orgId.equals("")||orgId==null)){   
+        }else if(fp.equals("1")&&(!orgId.equals("")||orgId!=null)){
+        	orgId=userService.getChildOrgList(Long.valueOf(orgId));
+        }else if(!fp.equals("1")&&(orgId.equals("")||orgId==null)){
+           orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+  		   setId=AboutOperator.getUser().getSetId();
+        }else if(!fp.equals("1")&&!orgId.equals("")&&orgId!=null){
+        	orgId=userService.getChildOrgList(Long.valueOf(orgId));
+
+        }
+    
+        
+		Map<String, String> param = new HashMap<String, String>();
+		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+/*		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}*/
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+
+		if( setId != null && !setId.equals("") ){
+			param.put("setId", setId );			
+		}
+		
+		if(isDiff != null && !isDiff.equals("") ){	
+			param.put("isDiff", isDiff );	
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findList(param,currentPage, pageSize);
+		
+/*    if(param.get("isDiff") != null 
+			    && ((String) param.get("isDiff")).equals("true")){
+			
+		if(pageListData.getTotalcount()!=0)
+			{		
+				JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+						"code","call_time","acms");	
+				  setResult(pageviewjson.toString());
+			}else{
+					  
+			setResult("[]");	
+		    }
+		}else{
+			
+			if(pageListData.getTotalcount()!=0)
+			{		
+				JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+						"call_time","duration","csName","oname","acms","code","callId","callDuration");	
+				  setResult(pageviewjson.toString());
+			}else{
+					  
+			setResult("[]");	
+		    }
+			
+	}*/
+    if(param.get("isDiff") != null 
+    		&& ((String) param.get("isDiff")).equals("true")){
+    		
+    		JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+    				"code","call_time","acms");	
+    		setResult(pageviewjson.toString());
+
+    }else{
+		
+    		JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+    				"call_time","duration","csName","oname","acms","code","callId","callDuration");	
+    		setResult(pageviewjson.toString());
+    	
+    }
+		return SUCCESS;
+	
+	}
+	
+	
+	/**
+	 * CallInMessage
+	 */	
+	public String queryCallInMessage() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//		} catch (UnsupportedEncodingException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+		//String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		
+        String deptId=jo.getString("deptId");       
+        String  orgId="";
+        String  setId="";
+        if(deptId!=null&&!deptId.equals("")){
+        	 orgId=deptId.substring(0,10); 
+             setId=deptId.substring(10,15);
+        }
+      
+        String fp=String.valueOf(AboutOperator.getUser().getFunctionPermission());
+        
+        if(fp.equals("1")&&(orgId.equals("")||orgId==null)){   
+        }else if(fp.equals("1")&&(!orgId.equals("")||orgId!=null)){
+        	orgId=userService.getChildOrgList(Long.valueOf(orgId));
+        }else if(!fp.equals("1")&&(orgId.equals("")||orgId==null)){
+           orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+  		   setId=AboutOperator.getUser().getSetId();
+        }else if(!fp.equals("1")&&!orgId.equals("")&&orgId!=null){
+        	orgId=userService.getChildOrgList(Long.valueOf(orgId));
+
+        }
+    
+	    
+		Map<String, String> param = new HashMap<String, String>();
+		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+/*		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}*/
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		if( setId != null && !setId.equals("") ){
+			param.put("setId", setId );			
+		}
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallInMessage(param,currentPage, pageSize);		
+	
+			JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+					"call_time","duration","csName","oname","acms","code","callId","content");	
+			setResult(pageviewjson.toString());
+		
+		return SUCCESS;
+		
+	}
+	
+	/**
+	 *CallOutRecords
+	 */	
+	public String queryCallOutRecords() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser");
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		String  orgId=jo.getString("deptId");
+		
+        String  isDiff=jo.getString("isDiff");
+         int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		
+		if(isDiff != null && !isDiff.equals("") ){	
+			param.put("isDiff", isDiff );	
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutRecord(param,currentPage, pageSize);		
+
+		
+	 if(param.get("isDiff") != null 
+			    && ((String) param.get("isDiff")).equals("true")){
+			
+		if(pageListData.getTotalcount()!=0)
+			{		
+				JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+						"code","call_time");	
+				 
+				  setResult(pageviewjson.toString());
+			}else{
+					  
+			setResult("[]");	
+		    }
+		}else{
+			
+			if(pageListData.getTotalcount()!=0)
+			{		
+				JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+						"call_time","duration","csName","oname","acms","code","callId","callDuration");	
+				
+				  setResult(pageviewjson.toString());
+			}else{
+					  
+			setResult("[]");	
+		    }
+			
+	}
+		return SUCCESS;
+		
+		
+		
+	}
+	
+	
+	
+	/**
+	 * CallOutComeRecords
+	 */	
+	public String queryCallOutComeRecords() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		String  orgId=jo.getString("deptId");
+		
+		String  isDiff=jo.getString("isDiff");
+		
+       int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		if( isDiff != null && !isDiff.equals("") ){
+			param.put("isDiff", isDiff );			
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutComeRecord(param,currentPage, pageSize);		
+		
+		 if(param.get("isDiff") != null 
+				    && ((String) param.get("isDiff")).equals("true")){
+				
+			if(pageListData.getTotalcount()!=0)
+				{		
+					JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+							"code","call_time");	
+					 
+					  setResult(pageviewjson.toString());
+				}else{
+						  
+				setResult("[]");	
+			    }
+			}else{
+				
+				if(pageListData.getTotalcount()!=0)
+				{		
+					JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+							"call_time","duration","csName","oname","acms","code","callId","callDuration");	
+					
+					  setResult(pageviewjson.toString());
+				}else{
+						  
+				setResult("[]");	
+			    }
+				
+		}
+			return SUCCESS;
+			
+			
+			
+		}
+	
+	/**
+	 * CallOutStranger
+	 */	
+	public String queryCallOutStranger() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		
+		String  orgId=jo.getString("deptId");
+		String  isDiff=jo.getString("isDiff");
+		
+       int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		if( isDiff != null && !isDiff.equals("") ){
+			param.put("isDiff", isDiff );			
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutStranger(param,currentPage, pageSize);		
+		 if(param.get("isDiff") != null 
+				    && ((String) param.get("isDiff")).equals("true")){
+				
+			if(pageListData.getTotalcount()!=0)
+				{		
+					JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+							"code","call_time");	
+					 
+					  setResult(pageviewjson.toString());
+				}else{
+						  
+				setResult("[]");	
+			    }
+			}else{
+				
+				if(pageListData.getTotalcount()!=0)
+				{		
+					JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+							"call_time","duration","csName","oname","acms","code","callId","callDuration");	
+					
+					  setResult(pageviewjson.toString());
+				}else{
+						  
+				setResult("[]");	
+			    }
+				
+		}
+			return SUCCESS;
+			
+			
+			
+		}
+	
+	
+	/**
+	 * CallOutMessage
+	 */	
+	public String queryCallOutMessage() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		String  orgId=jo.getString("deptId");
+		
+       int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutMessage(param,currentPage, pageSize);		
+		if(pageListData.getTotalcount()!=0)
+		{		
+			JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+					"call_time","duration","csName","oname","acms","code","callId","content");	
+			setResult(pageviewjson.toString());
+		}else{
+			
+			setResult("[]");	
+		}
+		
+		return SUCCESS;
+		
+	}
+	
+	
+	/**
+	 queryCallOutReplyRecord
+	 */	
+	public String queryCallOutReplyRecord() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		String  orgId=jo.getString("deptId");
+		
+       int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutReplyRecord(param,currentPage, pageSize);		
+		if(pageListData.getTotalcount()!=0)
+		{		
+			JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+					"call_time","duration","csName","oname","acms","code","callId","content");	
+			setResult(pageviewjson.toString());
+		}else{
+			
+			setResult("[]");	
+		}
+		
+		return SUCCESS;
+		
+	}
+	
+	
+	/**
+	 * CallOutStrangerRecords
+	 */	
+	public String queryCallOutStrangerRecords() {
+		ActionContext ct = ActionContext.getContext();
+		HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		
+		String jstr=request.getParameter("jsonData");
+		JSONObject jo = JSONObject.fromObject(jstr);
+		//String  channel=jo.getString("Channel"); 
+		String  adviser=jo.getString("adviser"); 
+		String  nameOrUser=jo.getString("nameOrUser"); 
+//        try {
+//        	nameOrUser = new String(nameOrUser.getBytes("iso8859-1"),"UTF-8");
+//			} catch (UnsupportedEncodingException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		String  customer=jo.getString("customer"); 
+		String  currentPage1=jo.getString("currentPage"); 
+		String  CustomerNumber=jo.getString("CustomerNumber"); 
+		String  dateVal=jo.getString("dateVal");
+		
+		String  orgId=jo.getString("deptId");
+		
+       int i= AboutOperator.getUser().getDataPermission();           
+       if(i==1){
+    	   if(orgId == null || orgId.equals("")){
+    		   orgId=userService.getChildOrgList(AboutOperator.getUser().getOrgId());
+    	   }else{
+    		   orgId=userService.getChildOrgList(Long.valueOf(orgId));
+    	   }	       
+         }
+		
+		Map<String, String> param = new HashMap<String, String>();
+/*		if( channel != null && !channel.equals("") ){
+			param.put("channel", channel );			
+		}*/
+		if( adviser != null && !adviser.equals("") ){
+			param.put("adviser", adviser );			
+		}
+		if( nameOrUser != null && !nameOrUser.equals("") ){
+			param.put("nameOrUser", nameOrUser );			
+		}
+		if( customer != null && !customer.equals("") ){
+			param.put("customer", customer );			
+		}
+		if( CustomerNumber != null && !CustomerNumber.equals("") ){
+			param.put("CustomerNumber", CustomerNumber );			
+		}
+		
+		if( orgId != null && !orgId.equals("") ){
+			param.put("orgId", orgId );			
+		}
+		
+		if( dateVal != null && !dateVal.equals("") ){
+			String beginTime=dateVal.substring(0, 19);
+			String endTime= dateVal.substring(22);
+			param.put("beginTime", beginTime);		
+			param.put("endTime", endTime );	
+		}
+		if(currentPage1 != null && !currentPage1.equals("") ){
+			currentPage=Integer.valueOf(currentPage1);
+		}
+		pageListData = service.findCallOutStrangerRecords(param,currentPage, pageSize);		
+		if(pageListData.getTotalcount()!=0)
+		{		
+			JSONObject pageviewjson = pageListData.parseJSON(0,"name","otherms","channel_name","prtms",
+					"call_time","duration","csName","oname","acms","code","callId","content");	
+			setResult(pageviewjson.toString());
+		}else{
+			
+			setResult("[]");	
+		}
+		
+		return SUCCESS;
+		
+	}
+	
+	
+
+	
+	
+	public String audioPlayer(){
+		 ActionContext ct = ActionContext.getContext();
+		 HttpServletRequest request = (HttpServletRequest) ct.get(ServletActionContext.HTTP_REQUEST);
+		 String targetDirectory = ServletActionContext.getServletContext().getRealPath("/record"); 
+		 String callId= request.getParameter("callId");
+		 Boolean flag= false;
+		 try {
+			flag = FTPClicentHelper.download(callId,targetDirectory);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 String url=callId+".mp3";
+		 result=url;
+		 return SUCCESS;
+	 }
+
+	/**
+	 * 删锟斤拷CdrCall
+	 * @return success
+	 */
+	public String delete() {
+		return "success";
+	}
+
+	/**
+	 * get锟斤拷锟斤拷
+	 * @return service
+	 */
+	public CallRecordsService getService() {
+		return service;
+	}
+
+	/**
+	 * set锟斤拷锟斤拷
+	 */
+	public void setService(CallRecordsService service) {
+		this.service = service;
+	}
+	
+	/**
+	 * get锟斤拷锟斤拷
+	 * @return startDate
+	 */
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * set锟斤拷锟斤拷
+	 */
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+	
+	/**
+	 * get锟斤拷锟斤拷
+	 * @return endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * set锟斤拷锟斤拷
+	 */
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+	
+	
+	/**
+	 * get锟斤拷锟斤拷
+	 * @return service
+	 */
+	public List<?> getDataList() {
+		return dataList;
+	}
+	public CdrCall getCdrCall() {
+		return cdrCall;
+	}
+
+
+
+	public void setCdrCall(CdrCall cdrCall) {
+		this.cdrCall = cdrCall;
+	}
+	/**
+	 * set锟斤拷锟斤拷
+	 */
+	public void setDataList(List<?> dataList) {
+		this.dataList = dataList;
+	}
+
+	public String getResult() {
+		return result;
+	}
+
+	public void setResult(String result) {
+		this.result = result;
+	}
+
+
+	public UserService getUserService() {
+		return userService;
+	}
+
+
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
+	
+}

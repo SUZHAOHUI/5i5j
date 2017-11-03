@@ -1,0 +1,24 @@
+
+package com.oio.wawj.dao;
+
+
+import java.util.List;
+
+import com.oio.wawj.bean.Role;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.bean.UserRole;
+
+
+
+public interface UserRoleDAO extends BaseDAO<UserRole, Short> {
+	public List<User> getNoUserRoleById( final List<Long> userIds);
+	public String getNoUserRoleByIds();
+	public List<UserRole> getByRoleId(Short roleId);
+	public List<UserRole> getByRoleIds(Short RoleId);
+	public User getUserById(Long userId);
+	public String getUserByIds(Short roleId);
+	public UserRole getRoleIdByUserId(final Long userId);
+
+
+	 
+}

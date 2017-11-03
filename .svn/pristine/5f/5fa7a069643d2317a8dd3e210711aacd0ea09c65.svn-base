@@ -1,0 +1,63 @@
+package com.oio.wawj.util;
+
+
+import java.util.Set;
+
+
+import redis.clients.jedis.Jedis;
+
+public class JedisOperation {
+	   
+	 public static Jedis  JedisRun(){
+	  Jedis jedis = new Jedis("120.24.214.65");
+	   jedis.auth("acsystem");
+	      //�鿴�����Ƿ�����
+	   //System.out.println("Server is running: "+jedis.ping());
+	   return jedis;
+	 }
+	 
+	 public static Jedis  JedisRun216(){
+		  Jedis jedis = new Jedis("101.200.221.216");
+		   jedis.auth("acsystem");
+		      //�鿴�����Ƿ�����
+		  // System.out.println("Server is running: "+jedis.ping());
+		   return jedis;
+		}
+	 
+        /**
+		 * redis�������ֵ,���߲���
+		 * @return flag
+		 */
+	   public static String upLine(String appkey,String number){
+		
+		 Jedis jedis = JedisRun();
+		 jedis.sadd("secret_no:T:I:"+appkey, number);
+		 return null;
+		 
+	   }
+	 
+	    /**
+		 * redis�������ֵ,���߲���
+		 * @return flag
+		 */
+		 public static String downLine(String appkey,String number){
+			
+			 Jedis jedis = JedisRun();
+			 jedis.srem("secret_no:T:I:"+appkey, number);
+			 return null;
+			 
+		 }
+	 public static void main(String[] args){
+		 Jedis jedis = JedisRun();
+		 Set<String> keys = jedis.keys("secret_no:T:I:GZ_AXB");
+	
+		   Set<String> secretNoSet = jedis.smembers("secret_no:T:I:GZ_AXB");
+		   int num = 0;
+		   for (String str : secretNoSet) {
+			   if(num<1)
+			   System.out.println(str);
+			   num++;
+			}      
+		  
+		}                                                                                           
+}

@@ -1,0 +1,79 @@
+package com.oio.wawj.service.impl;
+
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+
+import com.oio.wawj.bean.Channel;
+import com.oio.wawj.bean.ChannelId;
+import com.oio.wawj.bean.Ringtone;
+import com.oio.wawj.bean.Template;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.dao.RingtoneDAO;
+import com.oio.wawj.service.RingtoneService;
+import com.oio.wawj.util.PageListData;
+@Entity
+public class RingtoneServiceImpl implements RingtoneService {
+
+	@ManyToOne
+	private RingtoneDAO dao;
+	
+	
+	
+	public RingtoneDAO getDao() {
+		return dao;
+	}
+
+
+
+	public void setDao(RingtoneDAO dao) {
+		this.dao = dao;
+	}
+
+
+
+	@Override
+	public String findRingtone() {
+		// TODO Auto-generated method stub
+		return dao.getfindRingtone();
+	}
+	@Override
+	public String findRingtoneUrl(short Id) {
+		// TODO Auto-generated method stub
+		return dao.getfindRingtoneUrl(Id);
+	}
+
+	
+	/**
+	 * 保存记录
+	 */
+	public void save(Ringtone sysRingtone) {
+		dao.save(sysRingtone);
+	}
+	
+	/**
+	 * 更新记录
+	 */
+	public void update(Ringtone ringtone) {
+		dao.update(ringtone);
+	}
+	
+    public Ringtone findById(short id){
+    	return dao.getFindId(id);
+    }
+    
+	/**
+	 */
+	@SuppressWarnings("rawtypes")
+	public String findList() {
+		// TODO Auto-generated method stub
+
+/*	   String sql = " select p.parameter_id as pId, p.section_id as sectionId, p.section as section, p.item_id as itemId, p.item as item, p.value as value, " +
+			     " r.id as rId, r.name as rname, r.savepath as savepath";
+	   String sql1=	" from parameter as p " +
+	   		        " inner join ringtone as r on p.value = r.id"; */      
+		return dao.getList();
+	}
+	
+}

@@ -1,0 +1,106 @@
+package com.oio.wawj.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+
+import net.sf.json.JSONArray;
+
+import com.oio.wawj.bean.Role;
+import com.oio.wawj.bean.User;
+import com.oio.wawj.bean.UserRole;
+import com.oio.wawj.dao.UserRoleDAO;
+import com.oio.wawj.service.UserRoleService;
+
+
+
+/**
+ * ��Ҫ���ܣ�UserRole��ص�service�ӿڣ���Ҫ���ڴ���ҵ���߼���������dao��Ĳ�������
+ * @author 
+
+ */
+@Entity
+public class UserRoleServiceImpl implements UserRoleService {
+	@ManyToOne
+	private UserRoleDAO dao;
+	
+
+	/**
+	 * �����¼
+	 * @param Role Ҫ��������
+	 */
+	public void save(UserRole UserRole) {
+		dao.save(UserRole);
+	}
+	
+	
+	public void saveOrUpdate(UserRole UserRole) {
+		// TODO Auto-generated method stub
+		dao.saveOrUpdate(UserRole);
+	}
+	/**
+	 * ɾ���¼
+	 * @param Role Ҫɾ������
+	 */
+	public void delete(UserRole UserRole) {
+		dao.delete(UserRole);
+	}
+
+
+	public User findUserById(Long userId) {
+		return dao.getUserById(userId);
+	}
+	public UserRole findById(Long userId) {
+		return dao.getById(userId);
+	}
+	
+/*	public String findUserByIds(Short roleId) {
+		return dao.getUserByIds(roleId);
+	}*/
+	public String findUserByIds(Map param) {
+		return dao.getUserByIds(param);
+	}
+	
+	public Short findRoleIdByUserId(Long userId) {
+		UserRole UserRole = dao.getRoleIdByUserId(userId);
+		return UserRole.getId().getRoleId();
+	}
+	/**
+	 * ��ѯUserRole�б���Ϣ
+	 * @param id ������
+	 * @return UserRole��Ϣ
+	 */
+	public List<UserRole> findByRoleId(Short roleId) {
+		
+		return dao.getByRoleId(roleId);
+	}
+	public List<UserRole> findByRoleIds(Short roleId) {
+		
+		return dao.getByRoleIds(roleId);
+	}
+	public List findByRoleIdsfp(Short roleId,String setId) {
+		
+		return dao.getByRoleIdsfp(roleId,setId);
+	}
+
+	public List<User> findNoUseFunctionById(List<Long> userIds) {
+		return dao.getNoUserRoleById(userIds);
+	}
+	
+	public String findNoUseFunctionByIds() {
+		return dao.getNoUserRoleByIds();
+	}
+	
+	
+	public UserRoleDAO getDao() {
+		return dao;
+	}
+
+	public void setDao(UserRoleDAO dao) {
+		this.dao = dao;
+	}
+
+
+}

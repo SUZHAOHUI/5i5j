@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="5i5j"
+  id="myeclipse.1477362157616"
+  context-root="/5i5j"
+  j2ee-spec="5.0"
+  archive="5i5j.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+
