@@ -13,7 +13,6 @@ encoding//src/com/oio/wawj/dao/OrgDAO.java=GBK
 encoding//src/com/oio/wawj/dao/impl/AxbDAOImpl.java=UTF-8
 encoding//src/com/oio/wawj/dao/impl/BaseDAOImpl.java=UTF-8
 encoding//src/com/oio/wawj/dao/impl/BaseMongodbDAOImpl.java=UTF-8
-encoding//src/com/oio/wawj/dao/impl/CallRecordsDAOImpl.java=UTF-8
 encoding//src/com/oio/wawj/dao/impl/DepartmentDAOImpl.java=UTF-8
 encoding//src/com/oio/wawj/dao/impl/NumberDAOImpl.java=UTF-8
 encoding//src/com/oio/wawj/dao/impl/OrgDAOImpl.java=UTF-8

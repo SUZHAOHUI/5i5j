@@ -75,7 +75,7 @@
          </init-param> 
          <init-param> 
              <param-name>serverName</param-name> 
-             <param-value>http://192.168.3.247:8080</param-value> 
+             <param-value>http://192.168.3.238:8080</param-value> 
 <!-- 			这里的server是客户端的IP -->
           </init-param> 
      </filter> 
@@ -94,7 +94,7 @@
          </init-param> 
          <init-param> 
              <param-name>serverName</param-name> 
-             <param-value> http://192.168.3.247:8080</param-value> 
+             <param-value> http://192.168.3.238:8080</param-value> 
 <!-- 			这里的server是客户端的IP -->
         </init-param> 
      </filter> 

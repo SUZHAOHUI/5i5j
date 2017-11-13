@@ -68,7 +68,7 @@ http://www.springframework.org/schema/aop/spring-aop-2.5.xsd">
 	</bean>
   <!-- ************************************spring定时器配置开始**************************** -->	
 	<!-- 定时启动任务 Quartz--> 
-		<bean id="dayDataJob" class="org.springframework.scheduling.quartz.JobDetailBean"> 
+<!--		<bean id="dayDataJob" class="org.springframework.scheduling.quartz.JobDetailBean"> 
 			<property name="jobClass"> 
 				<value>com.oio.wawj.quartz.DayDataQuartzTask</value> 
 			</property> 
@@ -80,33 +80,33 @@ http://www.springframework.org/schema/aop/spring-aop-2.5.xsd">
 				</map> 
 			
 			</property> 
-		</bean> 	
+		</bean> 	-->
 		
 		<!-- 调度cron工作 -->
-		<bean id="dayDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> 
+	<!-- 	<bean id="dayDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> 
 			<property name="jobDetail"> 
 				<ref bean="dayDataJob"/> 
 			</property> 
 			<property name="cronExpression"> 
 				<value>0 0 0 * *  ?</value> 
 			</property> 
-		</bean> 
+		</bean>  -->
 		
-	<bean id="timeTigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+	<!-- <bean id="timeTigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
 	    <property name="jobDetail" ref="dayDataJob"></property>
 	    <property name="cronExpression">
 	        <value>0 0 3 * *  ?</value>
 	    </property>
-	</bean>
+	</bean> -->
 	
 		<!-- 启动工作  -->
-		<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"> 
+	<!-- 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"> 
 		<property name="triggers"> 
 		<list> 
 		<ref bean="timeTigger"/> 
 		</list> 
 		</property> 
-		</bean> 
+		</bean> --> 
 	<!-- 定义Hibernate的SessionFactory -->
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
